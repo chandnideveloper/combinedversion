@@ -1,0 +1,20 @@
+# Environment variables
+.env
+.env.local
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Deadletter / logs
+*.log
+app/deadletter_store/
+failed_cosmos_writes.jsonl
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
