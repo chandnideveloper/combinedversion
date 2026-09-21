@@ -1,0 +1,43 @@
+relationship e4431242-a315-54fb-8d0f-4ca40ea1d8ac
+	fromColumn: Trips.driver_id
+	toColumn: Drivers.driver_id
+
+relationship c966bdbd-33b5-5391-8722-ab301da110ec
+	fromColumn: Trips.truck_id
+	toColumn: Trucks.truck_id
+
+relationship 3382a17c-41ec-58c0-9dc6-268e467b37ec
+	fromColumn: Maintenance.truck_id
+	toColumn: Trucks.truck_id
+
+relationship 5af54763-ad58-5311-a102-731b876e0079
+	fromColumn: Trips.trailer_id
+	toColumn: Trailers.trailer_id
+
+relationship 2e86c837-0b84-5365-b1a1-921439cab523
+	fromColumn: Loads.customer_id
+	toColumn: Customers.customer_id
+
+relationship 9686f357-f377-5b44-a1b0-7499c90273e8
+	fromColumn: DeliveryEvents.facility_id
+	toColumn: Facilities.facility_id
+
+relationship 866b89a5-0870-5faa-99c7-883cccfb3e58
+	fromColumn: Loads.route_id
+	toColumn: Routes.route_id
+
+relationship 758ef9e8-e22c-5c9a-a54b-f70629f369e3
+	fromColumn: Trips.load_id
+	toColumn: Loads.load_id
+
+relationship 008548d9-a777-5478-b6d2-ccc87322420a
+	fromColumn: FuelPurchases.trip_id
+	toColumn: Trips.trip_id
+
+relationship e2834fc3-650f-5d8b-b9b1-f3f8d0db0e41
+	fromColumn: DeliveryEvents.trip_id
+	toColumn: Trips.trip_id
+
+relationship 95107944-0045-5bb1-920d-6c5a4a130564
+	fromColumn: SafetyIncidents.trip_id
+	toColumn: Trips.trip_id

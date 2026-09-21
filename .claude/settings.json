@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./venv/Scripts/python.exe -m pip install groq)",
+      "Bash(where python *)",
+      "Bash(py -0p)",
+      "Bash(./venv/Scripts/python.exe --version)",
+      "Bash(./venv/Scripts/python.exe -m pytest --version)",
+      "Bash(./venv/Scripts/python.exe -m pip install pytest pytest-asyncio)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/ -q)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/ -q --ignore=tests/test_mapping_agent.py)",
+      "Bash(./venv/Scripts/python.exe -c ' *)",
+      "Bash(GROQ_API_KEY=test-key ./venv/Scripts/python.exe -c ' *)",
+      "Bash(./venv/Scripts/python.exe \"C:/Users/sohit/AppData/Local/Temp/claude/c--Users-sohit-Downloads-Combined-version/e6de206e-e3f3-4b1f-900b-3bf4c79730d7/scratchpad/verify_snowflake.py\")",
+      "Bash(./venv/Scripts/python.exe \"C:/Users/sohit/AppData/Local/Temp/claude/c--Users-sohit-Downloads-Combined-version/e6de206e-e3f3-4b1f-900b-3bf4c79730d7/scratchpad/verify_llm_failure.py\")",
+      "Bash(./venv/Scripts/python.exe \"C:/Users/sohit/AppData/Local/Temp/claude/c--Users-sohit-Downloads-Combined-version/e6de206e-e3f3-4b1f-900b-3bf4c79730d7/scratchpad/verify_retry.py\")",
+      "Bash(./venv/Scripts/python.exe \"C:/Users/sohit/AppData/Local/Temp/claude/c--Users-sohit-Downloads-Combined-version/e6de206e-e3f3-4b1f-900b-3bf4c79730d7/scratchpad/verify_semaphore.py\")",
+      "Bash(./venv/Scripts/python.exe \"C:/Users/sohit/AppData/Local/Temp/claude/c--Users-sohit-Downloads-Combined-version/e6de206e-e3f3-4b1f-900b-3bf4c79730d7/scratchpad/verify_visual_type.py\")",
+      "Bash(./venv/Scripts/python.exe \"C:/Users/sohit/AppData/Local/Temp/claude/c--Users-sohit-Downloads-Combined-version/e6de206e-e3f3-4b1f-900b-3bf4c79730d7/scratchpad/verify_dims_filters.py\")",
+      "Bash(./venv/Scripts/python.exe -m py_compile config.py app.py agents/coordinator_agent.py agents/mapping_agent.py services/connection_mapper.py services/confidence_evaluator.py services/dax_identifiers.py services/dax_converter.py services/filter_mapper.py services/input_normalizer.py services/visual_mapper.py src/converters/llm_client.py src/converters/base.py src/converters/dashboard_objects/converter.py src/converters/dashboard_objects/rules.py rules/__init__.py)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/ -v)",
+      "Bash(python -c ' *)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/ -q -W error::pytest.PytestUnraisableExceptionWarning)",
+      "Bash(./venv/Scripts/python.exe \"C:/Users/sohit/AppData/Local/Temp/claude/c--Users-sohit-Downloads-Combined-version/e6de206e-e3f3-4b1f-900b-3bf4c79730d7/scratchpad/verify_end_to_end.py\")",
+      "Bash(./venv/Scripts/python.exe -m py_compile app.py agents/coordinator_agent.py services/api_logger.py services/filter_mapper.py src/converters/dashboard_objects/converter.py)",
+      "Bash(python -c \"import fastapi, pydantic, requests, pytest, httpx; print\\('all present'\\)\")",
+      "Bash(python -m pytest tests/ -q)",
+      "Bash(time python -m pytest tests/ -q)",
+      "Bash(pnpm --version)",
+      "Bash(cd \"c:/Users/sohit/Downloads/Combined version/unified-frontend\" && cat .npmrc 2>&1 | head -20 *)",
+      "Read(//c/Users/sohit/Downloads/QliktoFabrics_backup/unified-frontend/node_modules/.pnpm/**)",
+      "Bash(xargs grep -l \"table_tmdl\\\\|semantic_model\\\\|coordinator_agent\" -l)",
+      "Bash(python -m pytest tests/test_visual_mapper_coverage.py -q)",
+      "Bash(python -m pytest tests/test_visual_replacement.py -q)",
+      "Bash(xargs grep -n \"\\\\\"visual_type\\\\\":\\\\s*\\\\\"box\\\\|sankey\\\\|boxPlot\\\\|sankeyDiagram\" -i)",
+      "Bash(python -m pytest tests/test_contract.py -q)",
+      "Bash(timeout 100 python -m pytest tests/ -q --timeout=90)",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(timeout 100 python -m pytest tests/ -q)",
+      "Bash(python -m pytest tests/test_navigation_wiring.py -q)"
+    ]
+  }
+}

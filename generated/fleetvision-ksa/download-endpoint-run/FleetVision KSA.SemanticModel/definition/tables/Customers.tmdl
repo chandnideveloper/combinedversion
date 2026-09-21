@@ -1,0 +1,84 @@
+table Customers
+	lineageTag: 38a9d5ed-6ca7-5ecb-8256-fc65bb46a03e
+
+	measure 'Total Customers' = DISTINCTCOUNT('Customers'[customer_id])
+		formatString: "$#,##0.0M"
+		lineageTag: 0902181d-1af0-50ef-8642-3b06b993e9f3
+
+	column customer_id
+		dataType: string
+		lineageTag: 3fb9a87c-1881-581d-a4ca-aa8d50ffbc83
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_name
+		dataType: string
+		lineageTag: 710a38c7-6aa4-56b8-962c-c9b538f8b4a8
+		summarizeBy: none
+		sourceColumn: customer_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_type
+		dataType: string
+		lineageTag: e3f78ab5-00b6-5059-91c8-bcd16616c466
+		summarizeBy: none
+		sourceColumn: customer_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column credit_terms_days
+		dataType: double
+		lineageTag: 6539a2f5-9455-5a2d-ae3f-1371438ee7af
+		summarizeBy: sum
+		sourceColumn: credit_terms_days
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column primary_freight_type
+		dataType: string
+		lineageTag: 50ec5661-1be8-5744-8901-5e6496adca60
+		summarizeBy: none
+		sourceColumn: primary_freight_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column account_status
+		dataType: string
+		lineageTag: 6c0a054a-3b09-59a4-bbb5-67aa33132010
+		summarizeBy: none
+		sourceColumn: account_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column contract_start_date
+		dataType: dateTime
+		lineageTag: 6339cc9c-bb4e-5d95-9051-8df23c70e46a
+		summarizeBy: none
+		sourceColumn: contract_start_date
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column annual_revenue_potential
+		dataType: double
+		lineageTag: 3c2ae234-c1c7-5e20-b644-1e03f1081517
+		summarizeBy: sum
+		sourceColumn: annual_revenue_potential
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Customers = m
+		mode: import
+		source =
+				let
+				    Source = AmazonRedshift.Database("fleetvision-wg.881226714470.ap-southeast-2.redshift-serverless.amazonaws.com:5439", "dev"),
+				    Result = Value.NativeQuery(Source, "SELECT * FROM fleetvision.customers", null, [EnableFolding=false])
+				in
+				    Result
+
+	annotation PBI_ResultType = Table

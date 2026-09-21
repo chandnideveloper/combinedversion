@@ -1,0 +1,121 @@
+table SafetyIncidents
+	lineageTag: 88a98507-fbbe-56a6-a39e-af2a849e26e2
+
+	column trip_id
+		dataType: string
+		lineageTag: a89c8ced-7a7d-5ae2-9f34-fb17d593789a
+		summarizeBy: none
+		sourceColumn: trip_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_id
+		dataType: string
+		lineageTag: d05f6c85-8144-54a2-8913-785108e0b87f
+		summarizeBy: none
+		sourceColumn: incident_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_date
+		dataType: dateTime
+		lineageTag: 3940a4eb-c4af-5d7d-b179-4dbbb54cce4e
+		summarizeBy: none
+		sourceColumn: incident_date
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_type
+		dataType: string
+		lineageTag: 35cef020-ecb0-5ce9-97be-b6d0b67ce2ef
+		summarizeBy: none
+		sourceColumn: incident_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_city
+		dataType: string
+		lineageTag: b89c2e58-5b6a-5878-af24-00365499082e
+		summarizeBy: none
+		sourceColumn: incident_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_state
+		dataType: string
+		lineageTag: b506cee5-77d0-597d-bef5-e3fe1594bd05
+		summarizeBy: none
+		sourceColumn: incident_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column at_fault_flag
+		dataType: string
+		lineageTag: 4a3bc60b-49f5-5d8f-a8d7-221422c729df
+		summarizeBy: none
+		sourceColumn: at_fault_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column injury_flag
+		dataType: string
+		lineageTag: d33ab9b7-cede-542b-8b3c-05a9a7a6c83b
+		summarizeBy: none
+		sourceColumn: injury_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column vehicle_damage_cost
+		dataType: double
+		lineageTag: 28fe3887-f05b-51b8-841f-d268204c9874
+		summarizeBy: sum
+		sourceColumn: vehicle_damage_cost
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column cargo_damage_cost
+		dataType: double
+		lineageTag: daa92f9c-c5b3-5115-8ce8-1a56cbe6aa6d
+		summarizeBy: sum
+		sourceColumn: cargo_damage_cost
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column claim_amount
+		dataType: double
+		lineageTag: 3860c0c0-6df4-531d-a92b-da1716e1af52
+		summarizeBy: sum
+		sourceColumn: claim_amount
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column preventable_flag
+		dataType: string
+		lineageTag: 3650567e-08b6-5b69-9d0d-1b9db866e48f
+		summarizeBy: none
+		sourceColumn: preventable_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column description
+		dataType: string
+		lineageTag: 833a5045-e9b0-5c64-979f-ecec0033d570
+		summarizeBy: none
+		sourceColumn: description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition SafetyIncidents = m
+		mode: import
+		source =
+				let
+				    Source = AmazonRedshift.Database("fleetvision-wg.881226714470.ap-southeast-2.redshift-serverless.amazonaws.com:5439", "dev"),
+				    Result = Value.NativeQuery(Source, "SELECT * FROM fleetvision.safetyincidents", null, [EnableFolding=false])
+				in
+				    Result
+
+	annotation PBI_ResultType = Table

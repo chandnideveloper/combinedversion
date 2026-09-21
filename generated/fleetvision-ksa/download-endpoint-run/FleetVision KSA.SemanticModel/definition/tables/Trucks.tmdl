@@ -1,0 +1,123 @@
+table Trucks
+	lineageTag: 73040672-c518-5b15-ba0c-643ceb78be53
+
+	/// TODO (Qlik set analysis {<...>} has no DAX equivalent): Rewrite as CALCULATE(<aggregation>, <filter>), e.g. CALCULATE(SUM(T[Amount]), T[Band] = "High Value").
+	/// Original Qlik: COUNT({<'Trucks'[truck_status]={'Active'}>} DISTINCT 'Trips'[truck_id])
+	measure 'Active Trucks' = BLANK()
+		formatString: "$#,##0.0M"
+		lineageTag: c15447ed-173b-597c-9fbd-28e01a6288cc
+
+	/// TODO (Qlik set analysis {<...>} has no DAX equivalent): Rewrite as CALCULATE(<aggregation>, <filter>), e.g. CALCULATE(SUM(T[Amount]), T[Band] = "High Value").
+	/// Original Qlik: COUNT({<'Trucks'[fuel_type]={'Diesel'}>} DISTINCT 'Trips'[truck_id])
+	measure 'Diesel Trucks' = BLANK()
+		formatString: "$#,##0.0M"
+		lineageTag: f6f5cf4a-1ce0-556e-8a42-57c0aa05be76
+
+	column Truck = 'Trucks'[unit_number]
+		dataType: double
+		lineageTag: 5837f644-cde1-5a44-b3bf-2a69bdd4d321
+		summarizeBy: none
+
+	column truck_id
+		dataType: string
+		lineageTag: b7013c61-049e-5aa8-ba0f-e722fd6b91a8
+		summarizeBy: none
+		sourceColumn: truck_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column unit_number
+		dataType: double
+		lineageTag: 0e1ef306-99e3-50e5-a961-5ac3429de1ae
+		summarizeBy: sum
+		sourceColumn: unit_number
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column make
+		dataType: string
+		lineageTag: dedc418c-722c-52e7-b7f7-d19d7d951059
+		summarizeBy: none
+		sourceColumn: make
+
+		annotation SummarizationSetBy = Automatic
+
+	column truck_model_year
+		dataType: double
+		lineageTag: 5a007012-c08e-5d30-8d3a-04b12852280b
+		summarizeBy: none
+		sourceColumn: truck_model_year
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column truck_vin
+		dataType: string
+		lineageTag: bd430b8b-5845-581e-ae1c-55b5040bd471
+		summarizeBy: none
+		sourceColumn: truck_vin
+
+		annotation SummarizationSetBy = Automatic
+
+	column truck_acquisition_date
+		dataType: dateTime
+		lineageTag: 2e4c72cd-e481-55b7-867c-42ca2fc6fb24
+		summarizeBy: none
+		sourceColumn: truck_acquisition_date
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column acquisition_mileage
+		dataType: double
+		lineageTag: 250cf308-dbe2-5b4f-8a59-47ce9e99fdf8
+		summarizeBy: sum
+		sourceColumn: acquisition_mileage
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column fuel_type
+		dataType: string
+		lineageTag: 4cb86b0b-807b-5b29-bbd0-5187c33b2d9a
+		summarizeBy: none
+		sourceColumn: fuel_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column tank_capacity_gallons
+		dataType: double
+		lineageTag: 3bf65880-7cf0-55d9-a4be-fcb8a908112f
+		summarizeBy: sum
+		sourceColumn: tank_capacity_gallons
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column truck_status
+		dataType: string
+		lineageTag: 3140ac2e-3bdc-58ac-a113-fa169e3d4934
+		summarizeBy: none
+		sourceColumn: truck_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column truck_home_terminal
+		dataType: string
+		lineageTag: bb3b2d4c-4c72-5a36-8a99-9af955ca22cf
+		summarizeBy: none
+		sourceColumn: truck_home_terminal
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Trucks = m
+		mode: import
+		source =
+				let
+				    Source = AmazonRedshift.Database("fleetvision-wg.881226714470.ap-southeast-2.redshift-serverless.amazonaws.com:5439", "dev"),
+				    Result = Value.NativeQuery(Source, "SELECT * FROM fleetvision.trucks", null, [EnableFolding=false])
+				in
+				    Result
+
+	annotation PBI_ResultType = Table

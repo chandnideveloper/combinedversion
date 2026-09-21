@@ -1,0 +1,234 @@
+{
+  "info": {
+    "_postman_id": "qlik-fabric-migration-local-collection",
+    "name": "Qlik to Fabric Migration Local APIs",
+    "description": "Postman Collection for testing all 6 local microservices in the Qlik-to-Fabric migration pipeline.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Health Checks",
+      "item": [
+        {
+          "name": "Health - MongoDB Microservice (8008)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8008/docs",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8008",
+              "path": ["docs"]
+            }
+          }
+        },
+        {
+          "name": "Health - Qlik Engine Base API (3000)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:3000/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "3000",
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "Health - Unified Parsing Service (8001)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8001/health",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8001",
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Health - Mapping Agent Service (8002)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8002/health",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8002",
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Health - Generation Agent Service (8003)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8003/api/health",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8003",
+              "path": ["api", "health"]
+            }
+          }
+        },
+        {
+          "name": "Health - Unified Semantic Kernel (8000)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/health",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Unified Parsing Service (Port 8001)",
+      "item": [
+        {
+          "name": "POST /parse - Parse Qlik App",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source_type\": \"qlik\",\n  \"app_id\": \"afdeddc7-4dca-470b-bd3d-cdc279a1c408\",\n  \"app_name\": \"FleetVision KSA\",\n  \"run_id\": \"Demo-run-demo-fleet\",\n  \"workspace_id\": \"personal\"\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8001/parse",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8001",
+              "path": ["parse"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Mapping Agent Service (Port 8002)",
+      "item": [
+        {
+          "name": "POST /api/mapping - Convert to Fabric Semantic Model & Visuals",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source_type\": \"qlik\",\n  \"app_id\": \"afdeddc7-4dca-470b-bd3d-cdc279a1c408\",\n  \"app_name\": \"FleetVision KSA\",\n  \"run_id\": \"Demo-run-demo-fleet\",\n  \"workspace_id\": \"personal\",\n  \"force_refresh\": true\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8002/api/mapping",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8002",
+              "path": ["api", "mapping"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Generation Agent Service (Port 8003)",
+      "item": [
+        {
+          "name": "POST /generate - Build Power BI Desktop PBIP Package",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": \"afdeddc7-4dca-470b-bd3d-cdc279a1c408\",\n  \"app_name\": \"FleetVision KSA\",\n  \"run_id\": \"Demo-run-demo-fleet\",\n  \"target\": \"powerbi_desktop\",\n  \"deploy\": \"none\",\n  \"workspace_id\": \"4a212d5c-abf8-44ac-9cf5-7e47ed9aaf26\",\n  \"fabric_group_id\": \"4a212d5c-abf8-44ac-9cf5-7e47ed9aaf26\",\n  \"write_to_disk\": true\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8003/generate",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8003",
+              "path": ["generate"]
+            }
+          }
+        },
+        {
+          "name": "POST /generate - Deploy Directly to Microsoft Fabric",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": \"afdeddc7-4dca-470b-bd3d-cdc279a1c408\",\n  \"app_name\": \"FleetVision KSA\",\n  \"run_id\": \"Demo-run-demo-fleet\",\n  \"target\": \"fabric\",\n  \"deploy\": \"fabric\",\n  \"workspace_id\": \"4a212d5c-abf8-44ac-9cf5-7e47ed9aaf26\",\n  \"fabric_group_id\": \"4a212d5c-abf8-44ac-9cf5-7e47ed9aaf26\",\n  \"fabric_access_token\": \"<YOUR_FABRIC_ACCESS_TOKEN>\"\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8003/generate",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8003",
+              "path": ["generate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Unified Semantic Kernel Orchestrator (Port 8000)",
+      "item": [
+        {
+          "name": "POST /invoke-batch - Full End-to-End Migration Pipeline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source_type\": \"qlik\",\n  \"app_id\": \"afdeddc7-4dca-470b-bd3d-cdc279a1c408\",\n  \"app_name\": \"FleetVision KSA\",\n  \"run_id\": \"Demo-run-demo-fleet\",\n  \"workspace_id\": \"personal\",\n  \"department_repo\": \"Qlik_Migrated\",\n  \"fabric_group_id\": \"4a212d5c-abf8-44ac-9cf5-7e47ed9aaf26\",\n  \"deployment_type\": \"DIRECT_FABRIC\"\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/invoke-batch",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["invoke-batch"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

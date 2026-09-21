@@ -1,0 +1,259 @@
+table Trips
+	lineageTag: 3b0e1031-f748-5307-97a6-2f8653b800cd
+
+	/// TODO (Qlik AGGR() has no DAX equivalent): Rebuild with SUMMARIZE/ADDCOLUMNS and an iterator, e.g. MAXX(SUMMARIZE(Table, Table[Key], "v", SUM(Table[Col])), [v]).
+	/// Original Qlik: Max( Aggr( COUNT('Trips'[trip_id]), 'Trips'[truck_id] ) )
+	measure 'Maximum Trips by Truck' = BLANK()
+		formatString: "$#,##0.0M"
+		lineageTag: 8dbb9c27-3953-55a5-b794-ee73660ad1b0
+
+	measure 'Average Trip Distance' = AVERAGE('Trips'[actual_distance_miles])
+		formatString: "$#,##0.0M"
+		lineageTag: e35b7be9-e127-541f-ad6a-bc4af4bb08cc
+
+	measure 'Average Trip Duration' = AVERAGE('Trips'[actual_duration_hours])
+		formatString: "$#,##0.0M"
+		lineageTag: 02209d34-c0d5-5a0b-b601-dbd7d263f297
+
+	measure 'Total Trips' = COUNT('Trips'[trip_id])
+		formatString: "$#,##0.0M"
+		lineageTag: ea0647f4-bb8e-5695-81ab-ea36102811b3
+
+	measure 'Total Drivers' = DISTINCTCOUNT('Trips'[driver_id])
+		formatString: "$#,##0.0M"
+		lineageTag: 68a17c3b-ad04-50fc-b2ce-020ad3d1aa60
+
+	/// TODO (Qlik set analysis {<...>} has no DAX equivalent): Rewrite as CALCULATE(<aggregation>, <filter>), e.g. CALCULATE(SUM(T[Amount]), T[Band] = "High Value").
+	/// Original Qlik: COUNT({<'Trips'[trip_status]={'Completed'}>} 'Trips'[trip_id])
+	measure 'Completed Trips' = BLANK()
+		formatString: "$#,##0.0M"
+		lineageTag: d2d76ee4-575e-578f-bce6-66873c2a5729
+
+	/// TODO (Qlik set analysis {<...>} has no DAX equivalent): Rewrite as CALCULATE(<aggregation>, <filter>), e.g. CALCULATE(SUM(T[Amount]), T[Band] = "High Value").
+	/// Original Qlik: SUM({<'Trips'[trip_status]={'Completed'}>} 'Loads'[revenue])
+	measure 'Completed Trip Revenue' = BLANK()
+		formatString: "$#,##0.0M"
+		lineageTag: 86eaa52e-08bb-55ec-abcb-003200199e96
+
+	measure 'Average Fuel Efficiency' = DIVIDE(SUM('Trips'[actual_distance_miles]), SUM('Trips'[fuel_gallons_used]), 0)
+		formatString: "$#,##0.0M"
+		lineageTag: e65eef8f-660c-5c9d-a653-c6f0286b46d3
+
+	/// TODO (Qlik AGGR() has no DAX equivalent): Rebuild with SUMMARIZE/ADDCOLUMNS and an iterator, e.g. MAXX(SUMMARIZE(Table, Table[Key], "v", SUM(Table[Col])), [v]).
+	/// Original Qlik: Max( Aggr( COUNT('Trips'[trip_id]), 'Trips'[truck_id] ))
+	measure 'Fleet Operations' = BLANK()
+		formatString: "$#,##0.0M"
+		lineageTag: 2ef29338-e4c0-5eed-a44e-0f4e6a6cc9aa
+
+	measure 'Fleet Size' = DISTINCTCOUNT('Trips'[truck_id])
+		formatString: "$#,##0.0M"
+		lineageTag: 15746ebf-8cf3-5cb4-aa70-041d190332e4
+
+	column driver_id
+		dataType: string
+		lineageTag: 99962d85-9cae-523b-a19e-c09fadd976ba
+		summarizeBy: none
+		sourceColumn: driver_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column truck_id
+		dataType: string
+		lineageTag: 1338433a-4a62-55b4-a344-674a5641b340
+		summarizeBy: none
+		sourceColumn: truck_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column trailer_id
+		dataType: string
+		lineageTag: 801332f2-6eca-58b9-9ca0-d0c0dc2bc758
+		summarizeBy: none
+		sourceColumn: trailer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column load_id
+		dataType: string
+		lineageTag: 5fab398c-09f6-5896-a42d-7668e98edc81
+		summarizeBy: none
+		sourceColumn: load_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column trip_id
+		dataType: string
+		lineageTag: 45cb32c6-db6c-5f44-85a6-3162428e74be
+		summarizeBy: none
+		sourceColumn: trip_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column actual_distance_miles
+		dataType: double
+		lineageTag: a004a973-4cc0-54a1-b1cc-93e53f3baebd
+		summarizeBy: sum
+		sourceColumn: actual_distance_miles
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column actual_duration_hours
+		dataType: double
+		lineageTag: adee4386-7c9e-537e-a68e-f34c676feeab
+		summarizeBy: sum
+		sourceColumn: actual_duration_hours
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column fuel_gallons_used
+		dataType: double
+		lineageTag: 9fd8b063-6828-516a-bf44-49ace097b0d7
+		summarizeBy: sum
+		sourceColumn: fuel_gallons_used
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column average_mpg
+		dataType: double
+		lineageTag: f8b79f28-4d66-5115-a313-9a2d5db414a5
+		summarizeBy: sum
+		sourceColumn: average_mpg
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column idle_time_hours
+		dataType: dateTime
+		lineageTag: a86e4c62-3297-59ae-805f-073e8fd8c1c2
+		summarizeBy: none
+		sourceColumn: idle_time_hours
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column trip_status
+		dataType: string
+		lineageTag: e04d3a7a-6952-55f9-8ce8-b847c9ce6302
+		summarizeBy: none
+		sourceColumn: trip_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column TruckNumber = RELATED('Trucks'[truck_id])
+		dataType: double
+		lineageTag: 39eaa460-d6dc-597f-bb14-fee3dbcee91b
+		summarizeBy: sum
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column DispatchDate = 'Trips'[dispatch_date]
+		dataType: dateTime
+		lineageTag: 6d76169b-6ede-540e-b064-7644c8d1b3f2
+		summarizeBy: none
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column TripMonth = FORMAT('Trips'[dispatch_date], "mmmm")
+		dataType: double
+		lineageTag: 27aaefa0-1993-5137-a5e5-a282e2b14f17
+		summarizeBy: sum
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column LoadMonth = FORMAT('Trips'[dispatch_date], "mmmm")
+		dataType: double
+		lineageTag: 4e57d450-05ee-5b88-b844-952746d313a0
+		summarizeBy: sum
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthStartDate
+		dataType: dateTime
+		lineageTag: 1ca03fd6-490f-58a9-8c09-57d005442371
+		summarizeBy: none
+		sourceColumn: MonthStartDate
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthYear
+		dataType: int64
+		lineageTag: 1fd18945-0767-5c21-b6bb-7ec4be1ca5a9
+		summarizeBy: none
+		sourceColumn: MonthYear
+		formatString: #,##0
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthSort
+		dataType: dateTime
+		lineageTag: 366fd966-946d-50e0-ba39-e6a81006f822
+		summarizeBy: none
+		sourceColumn: MonthSort
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column TripYear = YEAR('Trips'[dispatch_date])
+		dataType: double
+		lineageTag: 218aba61-06ec-54fd-8602-cfb0bcd1554f
+		summarizeBy: none
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column TripWeek = WEEKNUM('Trips'[dispatch_date])
+		dataType: double
+		lineageTag: adcb080b-6fd7-5eb1-a8e4-e387c72d0b07
+		summarizeBy: sum
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNo
+		dataType: double
+		lineageTag: 21d65fba-e797-59b4-a21a-449aacd3cbdb
+		summarizeBy: sum
+		sourceColumn: MonthNo
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column DistanceBand = SWITCH(TRUE(), 'Trips'[actual_distance_miles] >= 1000, "Long Haul", 'Trips'[actual_distance_miles] >= 500, "Medium Haul", "Short Haul")
+		dataType: string
+		lineageTag: b4374b2a-0eef-5fe1-817b-7637e170f0cc
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column FuelEfficiencyBand = SWITCH(TRUE(), 'Trips'[average_mpg] >= 8, "High MPG", 'Trips'[average_mpg] >= 6, "Medium MPG", "Low MPG")
+		dataType: string
+		lineageTag: 18facad7-0e7d-5994-9189-03fa7f5fedf0
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column IdleTimeBand = SWITCH(TRUE(), 'Trips'[idle_time_hours] >= 5, "High Idle", 'Trips'[idle_time_hours] >= 2, "Moderate Idle", "Low Idle")
+		dataType: string
+		lineageTag: 29d2e21b-0ecb-5b30-aa0a-d32756f84cfd
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Trips = m
+		mode: import
+		source =
+				let
+				    Source = AmazonRedshift.Database("fleetvision-wg.881226714470.ap-southeast-2.redshift-serverless.amazonaws.com:5439", "dev"),
+				    Result = Value.NativeQuery(Source, "SELECT * FROM fleetvision.trips", null, [EnableFolding=false])
+				in
+				    Result
+
+	annotation PBI_ResultType = Table

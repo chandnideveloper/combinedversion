@@ -1,0 +1,10 @@
+expression FleetVisionRedshift =
+		let
+		    Source = AmazonRedshift.Database("fleetvision-wg.881226714470.ap-southeast-2.redshift-serverless.amazonaws.com:5439", "dev")
+		in
+		    Source
+	lineageTag: a127a1ae-58df-5e94-8b3c-f5853b9e3f44
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

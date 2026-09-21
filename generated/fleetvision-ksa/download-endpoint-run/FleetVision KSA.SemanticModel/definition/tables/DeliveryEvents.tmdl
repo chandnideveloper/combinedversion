@@ -1,0 +1,100 @@
+table DeliveryEvents
+	lineageTag: a31b3de9-e3b3-5759-a0dd-2e97dd0eea8d
+
+	measure 'On-Time Delivery %' = AVERAGE('DeliveryEvents'[on_time_flag])*100
+		formatString: "$#,##0.0M"
+		lineageTag: fae51d1f-d8f9-5b55-99bd-a56967d5ec3d
+
+	column facility_id
+		dataType: string
+		lineageTag: 1d72730f-a012-591b-8eb9-423a7a53ec20
+		summarizeBy: none
+		sourceColumn: facility_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column trip_id
+		dataType: string
+		lineageTag: d01822dc-9b8a-5903-8c08-2e3235029ac6
+		summarizeBy: none
+		sourceColumn: trip_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_id
+		dataType: string
+		lineageTag: 4bdc4e52-91af-552c-b08b-32bc059e3ad9
+		summarizeBy: none
+		sourceColumn: event_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_type
+		dataType: string
+		lineageTag: 13085807-aaca-5f23-81cc-04f6447e7fe9
+		summarizeBy: none
+		sourceColumn: event_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column scheduled_datetime
+		dataType: dateTime
+		lineageTag: 482c832f-a235-54f9-ac1b-009a261720a9
+		summarizeBy: none
+		sourceColumn: scheduled_datetime
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column actual_datetime
+		dataType: dateTime
+		lineageTag: 03590705-13b4-5dc6-885d-a1f5ae637966
+		summarizeBy: none
+		sourceColumn: actual_datetime
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column detention_minutes
+		dataType: double
+		lineageTag: e0ae6536-e685-504f-a3f5-6e7ae6717b9c
+		summarizeBy: sum
+		sourceColumn: detention_minutes
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column on_time_flag
+		dataType: string
+		lineageTag: d3ca52eb-7d52-53f4-ad16-70b945ca2e19
+		summarizeBy: none
+		sourceColumn: on_time_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column delivery_city
+		dataType: string
+		lineageTag: 4389c613-2b52-5490-81af-c783dd41d716
+		summarizeBy: none
+		sourceColumn: delivery_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column delivery_state
+		dataType: string
+		lineageTag: ced951d9-a000-5e41-b483-647362840126
+		summarizeBy: none
+		sourceColumn: delivery_state
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DeliveryEvents = m
+		mode: import
+		source =
+				let
+				    Source = AmazonRedshift.Database("fleetvision-wg.881226714470.ap-southeast-2.redshift-serverless.amazonaws.com:5439", "dev"),
+				    Result = Value.NativeQuery(Source, "SELECT * FROM fleetvision.deliveryevents", null, [EnableFolding=false])
+				in
+				    Result
+
+	annotation PBI_ResultType = Table

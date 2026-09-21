@@ -1,0 +1,1024 @@
+{
+  "info": {
+    "_postman_id": "c83f5e92-2901-447b-b9f1-778dfc39ce5f",
+    "name": "Unified Migration Platform - Complete Postman Suite (Qlik & Tableau to Fabric)",
+    "description": "Comprehensive Postman collection for all microservices in the Migration Platform:\n- 1. Unified Semantic Kernel Orchestrator (:8000)\n- 2. Mapping Agent API (:8002)\n- 3. Generation Agent API (:8003)\n- 4. Unified Parsing Service (:8001)\n- 5. Qlik Base Engine API (:3000)\n- 6. Tableau Base Engine API (:5000)\n- 7. Central MongoDB Microservice (:8008)\n\nAll requests include verified real-world payloads, accurate paths, and variable interpolations.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "semantic_kernel_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "parsing_base_url",
+      "value": "http://localhost:8001",
+      "type": "string"
+    },
+    {
+      "key": "mapping_base_url",
+      "value": "http://localhost:8002",
+      "type": "string"
+    },
+    {
+      "key": "generation_base_url",
+      "value": "http://localhost:8003",
+      "type": "string"
+    },
+    {
+      "key": "qlik_engine_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "tableau_engine_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "mongo_base_url",
+      "value": "http://localhost:8008",
+      "type": "string"
+    },
+    {
+      "key": "connection_id",
+      "value": "conn-9c1729be9de8",
+      "type": "string"
+    },
+    {
+      "key": "app_id",
+      "value": "7e884651-30bf-46aa-9efe-047fe29d1917",
+      "type": "string"
+    },
+    {
+      "key": "space_id",
+      "value": "personal",
+      "type": "string"
+    },
+    {
+      "key": "run_id",
+      "value": "test-run-hospital-001",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "user@example.com",
+      "type": "string"
+    },
+    {
+      "key": "ai_model_id",
+      "value": "model-groq-llama33",
+      "type": "string"
+    },
+    {
+      "key": "fabric_workspace_id",
+      "value": "c5068f11-011c-4648-a151-231f32581819",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Unified Semantic Kernel (:8000)",
+      "item": [
+        {
+          "name": "1.1 Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{semantic_kernel_url}}/health",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.2 AI Models - List Available (Frontend Picker)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{semantic_kernel_url}}/models",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "models"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.3 AI Models - List Stored Configs (MongoDB)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{semantic_kernel_url}}/ai-models?provider=",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "ai-models"
+              ],
+              "query": [
+                {
+                  "key": "provider",
+                  "value": "",
+                  "description": "Optional: groq, azure_openai, openai, claude, ollama"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.4 AI Models - Create Model Config (MongoDB)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"groq\",\n  \"name\": \"Groq Llama 3.3 70B\",\n  \"model_name\": \"llama-3.3-70b-versatile\",\n  \"api_key\": \"gsk_your_groq_api_key\",\n  \"base_url\": \"https://api.groq.com/openai/v1\",\n  \"is_default\": true,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{semantic_kernel_url}}/ai-models",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "ai-models"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.5 AI Models - Update Model Config (MongoDB)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Groq Llama 3.3 70B (Production)\",\n  \"model_name\": \"llama-3.3-70b-versatile\",\n  \"provider\": \"groq\",\n  \"api_key\": \"gsk_your_groq_api_key\",\n  \"base_url\": \"https://api.groq.com/openai/v1\",\n  \"is_default\": true,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{semantic_kernel_url}}/ai-models/{{ai_model_id}}",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "ai-models",
+                "{{ai_model_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.6 AI Models - Delete Model Config (MongoDB)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{semantic_kernel_url}}/ai-models/{{ai_model_id}}",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "ai-models",
+                "{{ai_model_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.7 Qlik Discovery - List Spaces",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{semantic_kernel_url}}/qlik/spaces?source_type=cloud&connection_id={{connection_id}}",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "qlik",
+                "spaces"
+              ],
+              "query": [
+                {
+                  "key": "source_type",
+                  "value": "cloud"
+                },
+                {
+                  "key": "connection_id",
+                  "value": "{{connection_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.8 Qlik Discovery - List Apps in Space",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{semantic_kernel_url}}/qlik/apps?space_id={{space_id}}&source_type=cloud&connection_id={{connection_id}}",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "qlik",
+                "apps"
+              ],
+              "query": [
+                {
+                  "key": "space_id",
+                  "value": "{{space_id}}"
+                },
+                {
+                  "key": "source_type",
+                  "value": "cloud"
+                },
+                {
+                  "key": "connection_id",
+                  "value": "{{connection_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.9 Qlik Connections - List Connections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{semantic_kernel_url}}/qlik/connections",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "qlik",
+                "connections"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.10 Qlik Connections - Create Connection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_url\": \"https://your-tenant.us.qlikcloud.com\",\n  \"api_key\": \"eyJhbGciOi...\",\n  \"alias\": \"Production Qlik Cloud\",\n  \"env_type\": \"cloud\"\n}"
+            },
+            "url": {
+              "raw": "{{semantic_kernel_url}}/qlik/connections",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "qlik",
+                "connections"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.11 Start Universal Batch Run (Qlik or Tableau to Fabric)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"source_type\": \"qlik\",\n  \"deployment_type\": \"DIRECT_FABRIC\",\n  \"department_repo\": \"Health_Analytics\",\n  \"fabric_group_id\": \"{{fabric_workspace_id}}\",\n  \"model\": \"auto\",\n  \"model_mode\": \"auto\",\n  \"connection_id\": \"{{connection_id}}\",\n  \"items\": [\n    {\n      \"app_id\": \"{{app_id}}\",\n      \"space_id\": \"{{space_id}}\",\n      \"app_name\": \"New Hospital Dashboard\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{semantic_kernel_url}}/invoke-batch",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "invoke-batch"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.12 Stop Active Run",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"run_id\": \"{{run_id}}\",\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{semantic_kernel_url}}/qlik/stop-run",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "qlik",
+                "stop-run"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.13 Resume Run",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"run_id\": \"{{run_id}}\",\n  \"email\": \"user@example.com\",\n  \"phase\": \"mapping\"\n}"
+            },
+            "url": {
+              "raw": "{{semantic_kernel_url}}/qlik/resume-run",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "qlik",
+                "resume-run"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.14 Get Run History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{semantic_kernel_url}}/run-history?email={{user_id}}&run_id={{run_id}}",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "run-history"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{user_id}}"
+                },
+                {
+                  "key": "run_id",
+                  "value": "{{run_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.15 Get Agent Actions (Audit Trail)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{semantic_kernel_url}}/agent-actions?run_id={{run_id}}&app_id={{app_id}}",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "agent-actions"
+              ],
+              "query": [
+                {
+                  "key": "run_id",
+                  "value": "{{run_id}}"
+                },
+                {
+                  "key": "app_id",
+                  "value": "{{app_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.16 Token Preflight (MSAL/Fabric)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"fabric_group_id\": \"{{fabric_workspace_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{semantic_kernel_url}}/token-preflight",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "token-preflight"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.17 Get Phase Results (Assessment, Parsing, Mapping, Summary)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{semantic_kernel_url}}/api/results/run-summary?run_id={{run_id}}",
+              "host": [
+                "{{semantic_kernel_url}}"
+              ],
+              "path": [
+                "api",
+                "results",
+                "run-summary"
+              ],
+              "query": [
+                {
+                  "key": "run_id",
+                  "value": "{{run_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Mapping Agent API (:8002)",
+      "item": [
+        {
+          "name": "2.1 Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mapping_base_url}}/health",
+              "host": [
+                "{{mapping_base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "2.2 Execute Mapping (Qlik to Fabric Contract 2.0)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": \"{{app_id}}\",\n  \"run_id\": \"{{run_id}}\",\n  \"force_refresh\": true,\n  \"is_direct_query\": false\n}"
+            },
+            "url": {
+              "raw": "{{mapping_base_url}}/api/mapping",
+              "host": [
+                "{{mapping_base_url}}"
+              ],
+              "path": [
+                "api",
+                "mapping"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Generation Agent API (:8003)",
+      "item": [
+        {
+          "name": "3.1 Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{generation_base_url}}/api/health",
+              "host": [
+                "{{generation_base_url}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.2 Generate PBIP Package (TMDL + PBIR)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": \"{{app_id}}\",\n  \"run_id\": \"{{run_id}}\",\n  \"target\": \"powerbi_desktop\",\n  \"deploy\": \"none\"\n}"
+            },
+            "url": {
+              "raw": "{{generation_base_url}}/generate",
+              "host": [
+                "{{generation_base_url}}"
+              ],
+              "path": [
+                "generate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.3 Visual Catalog",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{generation_base_url}}/catalog/visuals",
+              "host": [
+                "{{generation_base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "visuals"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.4 Download PBIP Zip",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": \"{{app_id}}\",\n  \"run_id\": \"{{run_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{generation_base_url}}/download",
+              "host": [
+                "{{generation_base_url}}"
+              ],
+              "path": [
+                "download"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Unified Parsing Service (:8001)",
+      "item": [
+        {
+          "name": "4.1 Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{parsing_base_url}}/",
+              "host": [
+                "{{parsing_base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.2 Parse Qlik App",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source_type\": \"qlik\",\n  \"app_id\": \"{{app_id}}\",\n  \"connection_id\": \"{{connection_id}}\",\n  \"run_id\": \"{{run_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{parsing_base_url}}/parse",
+              "host": [
+                "{{parsing_base_url}}"
+              ],
+              "path": [
+                "parse"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.3 Parse Tableau Workbook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source_type\": \"tableau\",\n  \"workbook_id\": \"Sales_Analysis.twbx\",\n  \"connection_id\": \"tableau-conn-1\",\n  \"run_id\": \"{{run_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{parsing_base_url}}/parse",
+              "host": [
+                "{{parsing_base_url}}"
+              ],
+              "path": [
+                "parse"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.4 Get Stored Parsing by Run ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{parsing_base_url}}/parsing/by-run/{{run_id}}?source_type=qlik",
+              "host": [
+                "{{parsing_base_url}}"
+              ],
+              "path": [
+                "parsing",
+                "by-run",
+                "{{run_id}}"
+              ],
+              "query": [
+                {
+                  "key": "source_type",
+                  "value": "qlik"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Qlik Base Engine API (:3000)",
+      "item": [
+        {
+          "name": "5.1 Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{qlik_engine_url}}/health",
+              "host": [
+                "{{qlik_engine_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.2 Get Spaces",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{qlik_engine_url}}/getSpaces?connection_id={{connection_id}}",
+              "host": [
+                "{{qlik_engine_url}}"
+              ],
+              "path": [
+                "getSpaces"
+              ],
+              "query": [
+                {
+                  "key": "connection_id",
+                  "value": "{{connection_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.3 Get Apps (Personal Space)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{qlik_engine_url}}/getApps/personal?connection_id={{connection_id}}",
+              "host": [
+                "{{qlik_engine_url}}"
+              ],
+              "path": [
+                "getApps",
+                "personal"
+              ],
+              "query": [
+                {
+                  "key": "connection_id",
+                  "value": "{{connection_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.4 Complete App Extraction (/all)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{qlik_engine_url}}/all/{{app_id}}?connection_id={{connection_id}}",
+              "host": [
+                "{{qlik_engine_url}}"
+              ],
+              "path": [
+                "all",
+                "{{app_id}}"
+              ],
+              "query": [
+                {
+                  "key": "connection_id",
+                  "value": "{{connection_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.5 Extract Sheets & Visuals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{qlik_engine_url}}/sheets/{{app_id}}?connection_id={{connection_id}}",
+              "host": [
+                "{{qlik_engine_url}}"
+              ],
+              "path": [
+                "sheets",
+                "{{app_id}}"
+              ],
+              "query": [
+                {
+                  "key": "connection_id",
+                  "value": "{{connection_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.6 Extract Data Sources & Table Origins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{qlik_engine_url}}/datasources/{{app_id}}?connection_id={{connection_id}}",
+              "host": [
+                "{{qlik_engine_url}}"
+              ],
+              "path": [
+                "datasources",
+                "{{app_id}}"
+              ],
+              "query": [
+                {
+                  "key": "connection_id",
+                  "value": "{{connection_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Central MongoDB Microservice (:8008)",
+      "item": [
+        {
+          "name": "6.1 Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_base_url}}/health",
+              "host": [
+                "{{mongo_base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6.2 List Qlik Connections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_base_url}}/qlik",
+              "host": [
+                "{{mongo_base_url}}"
+              ],
+              "path": [
+                "qlik"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6.3 Get Qlik Connection by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_base_url}}/qlik/{{connection_id}}",
+              "host": [
+                "{{mongo_base_url}}"
+              ],
+              "path": [
+                "qlik",
+                "{{connection_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6.4 Get Stored Parsing by Run ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_base_url}}/parsing/by-run/{{run_id}}",
+              "host": [
+                "{{mongo_base_url}}"
+              ],
+              "path": [
+                "parsing",
+                "by-run",
+                "{{run_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6.5 Get Stored Mapping by Run ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_base_url}}/mapping/by-run/{{run_id}}",
+              "host": [
+                "{{mongo_base_url}}"
+              ],
+              "path": [
+                "mapping",
+                "by-run",
+                "{{run_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6.6 Log Agent Action",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"Completed mapping for New Hospital Dashboard\",\n  \"app_id\": \"{{app_id}}\",\n  \"run_id\": \"{{run_id}}\",\n  \"service\": \"qlik-mapping-agent\"\n}"
+            },
+            "url": {
+              "raw": "{{mongo_base_url}}/agent-actions",
+              "host": [
+                "{{mongo_base_url}}"
+              ],
+              "path": [
+                "agent-actions"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Tableau Base Engine API (:5000)",
+      "item": [
+        {
+          "name": "7.1 Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{tableau_engine_url}}/health",
+              "host": [
+                "{{tableau_engine_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "7.2 List Tableau Connections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{tableau_engine_url}}/connections",
+              "host": [
+                "{{tableau_engine_url}}"
+              ],
+              "path": [
+                "connections"
+              ]
+            }
+          }
+        },
+        {
+          "name": "7.3 Get Tableau Projects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{tableau_engine_url}}/tableau/projects",
+              "host": [
+                "{{tableau_engine_url}}"
+              ],
+              "path": [
+                "tableau",
+                "projects"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

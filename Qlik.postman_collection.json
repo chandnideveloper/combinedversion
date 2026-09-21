@@ -1,0 +1,348 @@
+{
+  "info": {
+    "_postman_id": "8b53dce5-ccd1-408f-8a04-84fe8d0f804e",
+    "name": "Qlik",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39112712"
+  },
+  "item": [
+    {
+      "name": "Bearer token for Qlik",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let json;",
+              "try {",
+              "  json = pm.response.json();",
+              "} catch (err) {",
+              "  throw new Error('Invalid JSON response while retrieving bearer token.');",
+              "}",
+              "",
+              "if (!json || typeof json.access_token !== 'string' || !json.access_token.trim()) {",
+              "  throw new Error('Token response is missing a valid access_token field.');",
+              "}",
+              "",
+              "pm.test('Response contains access_token', function () {",
+              "  pm.expect(json.access_token).to.be.a('string').and.not.empty;",
+              "});",
+              "",
+              "await pm.vault.set('Bearer Token', json.access_token);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "client_credentials",
+              "type": "text",
+              "uuid": "0627a2a0-cff3-4f93-9250-3a6c1815cd0b"
+            },
+            {
+              "key": "client_id",
+              "value": "b9e23d2f-17c6-4957-a84e-692cf1ab2d25",
+              "type": "text",
+              "uuid": "4042a755-cfa7-45e6-a9a4-5b7a754d5d47"
+            },
+            {
+              "key": "client_secret",
+              "value": "{{client_secret}}",
+              "type": "text",
+              "uuid": "82a9472d-aa7d-4048-8c3e-bbad4710a19e"
+            },
+            {
+              "key": "scope",
+              "value": "api://b9e23d2f-17c6-4957-a84e-692cf1ab2d25/.default",
+              "type": "text",
+              "uuid": "58df8fe9-5220-410d-be4e-71006c6aea9f"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://login.microsoftonline.com/4dab0fef-f02d-440b-97c3-712e9483bd68/oauth2/v2.0/token",
+          "protocol": "https",
+          "host": [
+            "login",
+            "microsoftonline",
+            "com"
+          ],
+          "path": [
+            "4dab0fef-f02d-440b-97c3-712e9483bd68",
+            "oauth2",
+            "v2.0",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get space",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6ImZFdHFyaEtUMWJYQUdhZlNkUW9OMXZYVFJwSSIsImtpZCI6ImZFdHFyaEtUMWJYQUdhZlNkUW9OMXZYVFJwSSJ9.eyJhdWQiOiJhcGk6Ly8xMmJjYWM2NC1iMjQ2LTQzYmYtYTM3Ni1hYTdjZjdjMWE1ZmMiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8wM2JhYjJjZi1mODJiLTRmNjQtODNhNy1mMGY2YTRiZjA3MmQvIiwiaWF0IjoxNzg1OTE5MjA3LCJuYmYiOjE3ODU5MTkyMDcsImV4cCI6MTc4NTkyMzEwNywiYWlvIjoiQVNRQTIvOGNBQUFBcGMyMHJsdHQ3a1oyanRudnA2RGpYU2xzWWdIUW1ObjFGR3dJZjJ6MlI4RT0iLCJhcHBpZCI6ImY5MGNhZGQ5LTk0ZmEtNGUzOC05NDMxLTE3ZmE3NmVhZmI0YyIsImFwcGlkYWNyIjoiMSIsImlkcCI6Imh0dHBzOi8vc3RzLndpbmRvd3MubmV0LzAzYmFiMmNmLWY4MmItNGY2NC04M2E3LWYwZjZhNGJmMDcyZC8iLCJvaWQiOiIyMTVjODRkNS04NzIyLTQ5NjYtYWY4My0wMDNlOTVhMTExMDMiLCJyaCI6IjEuQVVJQXo3SzZBeXY0WkUtRHBfRDJwTDhITFdTc3ZCSkdzcjlEbzNhcWZQZkJwZndBQUFCQ0FBLiIsInN1YiI6IjIxNWM4NGQ1LTg3MjItNDk2Ni1hZjgzLTAwM2U5NWExMTEwMyIsInRpZCI6IjAzYmFiMmNmLWY4MmItNGY2NC04M2E3LWYwZjZhNGJmMDcyZCIsInV0aSI6ImZHRDE1bExORFV1WnhJLXQtZmRiQUEiLCJ2ZXIiOiIxLjAiLCJ4bXNfZnRkIjoid0FLcm9zVjd4NkpzbGJzbmY3ZHV4N2dRVERqMWlRbVl2Y3dvQmw4Vk05RUJZWFZ6ZEhKaGJHbGhaV0Z6ZEMxa2MyMXoifQ.Hvd4p8U9NM3oDsGhYlX23CpeJPoNF1crDpTP3yiEfjXXTT7ZwCKEqihDtYDBMk63VQg3pKmiU4XHp5EKP-9pxluRphrXopIGdzwdOF4CRTEd3_NjomFpXk35ySaN6Vemt0T_-6g7cBNXBOa7GrgH09azXHyNNDshz4E3HoEBLyJfDptbfRPA4e6deeaMagl0D9Dmjz8x4o4ciKNXWDWpUfQNWYyvnaezQMrMomJaD-AfGh_GJ7vileop0ACLqo01PBYNmxTVZ3yIAI-il6tVy9KWVqSmBaQWvptpT__umDgCIhtEh1i_G2P-iMl0IbtI7q5rC4bG36vAbbbkoTOw8w",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/getSpaces",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "getSpaces"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "App id",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{vault:Bearer Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://qlik-base-engine.onrender.com/getApps/:spaceId",
+          "protocol": "https",
+          "host": [
+            "qlik-base-engine",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "getApps",
+            ":spaceId"
+          ],
+          "variable": [
+            {
+              "key": "spaceId",
+              "value": "6a672f075af8f52af4ca31fc"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Semantic kernel",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{vault:Bearer Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "// {\r\n//   \"email\": \"harmanpreet@dotnetit.com.au\",\r\n//   \"items\": [\r\n//     {\r\n//       \"workspace_id\": \"681192c4a97184a58e512e25\",\r\n//       \"workspace_name\": \"sharedspace\",\r\n//       \"app_id\": \"aec07390-db00-4a19-96f4-d0b703619a51\",\r\n//       \"app_name\": \"Online Sales\"\r\n//     }\r\n//   ],\r\n//   \"department_repo\": \"az-repo-pbip-test\",\r\n//   \"fabric_group_id\": \"c5068f11-011c-4648-a151-231f32581819\",\r\n//   \"deployment_type\": \"DIRECT_FABRIC\",\r\n//   \"fabric_access_token\": \"eyJ0eXAiOiJKV1...\",\r\n//   \"refresh_token\": \"0.AX8A...\",\r\n//   \"run_validation\": false\r\n// }\r\n\r\n\r\n\r\n{\r\n  \"source_type\": \"qlik\",\r\n  \"email\": \"test@example.com\",\r\n  \"fabric_group_id\": \"84a7e930-1234\",\r\n  \"fabric_access_token\": \"dummy_token\",\r\n  \"items\": [\r\n    {\r\n      \"workspace_id\": \"aec07390-db00-4a19-96f4-d0b703619a51\",\r\n      \"app_id\": \"aec07390-db00-4a19-96f4-d0b703619a51\",\r\n      \"app_name\": \"Online Sales\"\r\n    }\r\n  ]\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5050/invoke-batch",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5050",
+          "path": [
+            "invoke-batch"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Cosmos Get Results",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{vault:Bearer Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8008/assessment/by-app/7e24afb1-426d-4ea9-8942-9c3c32c35d2c",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8008",
+          "path": [
+            "assessment",
+            "by-app",
+            "7e24afb1-426d-4ea9-8942-9c3c32c35d2c"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Status Update",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{vault:Bearer Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5050/qlik/status/ad487d8b-e69b-4c40-bb18-bfae50f1742c",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5050",
+          "path": [
+            "qlik",
+            "status",
+            "ad487d8b-e69b-4c40-bb18-bfae50f1742c"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Qlik data",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{vault:Bearer Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/all/1ebcd6ef-43a0-4683-9b82-8d6119d7d6b1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "all",
+            "1ebcd6ef-43a0-4683-9b82-8d6119d7d6b1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"server_url\": \"https://u4pmr1gu6336nm2.in.qlikcloud.com/\",\r\n    \"qlik_api_key\": \"{{json_web_token_13ll}}\",\r\n    \"connection_name\": \"My Qlik Cloud Tenant\",\r\n    \"env_type\": \"cloud\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://mongo-db-k15s.onrender.com/qlik",
+          "protocol": "https",
+          "host": [
+            "mongo-db-k15s",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "qlik"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://qlik-base-engine.onrender.com/connectionDetails/conn-9c1729be9de8",
+          "protocol": "https",
+          "host": [
+            "qlik-base-engine",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "connectionDetails",
+            "conn-9c1729be9de8"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "json_web_token_13ll",
+      "secret": true
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+table Trailers
+	lineageTag: 1b47d346-6321-5afa-aecf-d2d29ece3614
+
+	/// TODO (Qlik set analysis {<...>} has no DAX equivalent): Rewrite as CALCULATE(<aggregation>, <filter>), e.g. CALCULATE(SUM(T[Amount]), T[Band] = "High Value").
+	/// Original Qlik: COUNT({<'Trailers'[trailer_status]={'Active'}>} DISTINCT 'Trips'[trailer_id])
+	measure 'Active Trailers' = BLANK()
+		formatString: "$#,##0.0M"
+		lineageTag: efd511ba-959e-5b93-8c68-f84eb5915b8d
+
+	column trailer_id
+		dataType: string
+		lineageTag: 0183f130-8708-55df-85c5-260e1c85c1fa
+		summarizeBy: none
+		sourceColumn: trailer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column trailer_number
+		dataType: double
+		lineageTag: 414a5015-4ca9-5eef-8025-1b59c240838a
+		summarizeBy: sum
+		sourceColumn: trailer_number
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column trailer_type
+		dataType: string
+		lineageTag: 5004a82c-bd7b-53ca-a7a6-cc23f755e368
+		summarizeBy: none
+		sourceColumn: trailer_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column length_feet
+		dataType: double
+		lineageTag: aef9fab4-4d68-59fc-adee-ceb211777735
+		summarizeBy: sum
+		sourceColumn: length_feet
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column trailer_model_year
+		dataType: double
+		lineageTag: b919d6f3-e2c0-59e6-8c9c-a6ca2ecaed93
+		summarizeBy: none
+		sourceColumn: trailer_model_year
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column trailer_vin
+		dataType: string
+		lineageTag: b9a6765b-089e-5e6d-935d-1d7f02737803
+		summarizeBy: none
+		sourceColumn: trailer_vin
+
+		annotation SummarizationSetBy = Automatic
+
+	column trailer_acquisition_date
+		dataType: dateTime
+		lineageTag: 1e9b71af-bd39-561d-84b4-767fcf183f17
+		summarizeBy: none
+		sourceColumn: trailer_acquisition_date
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column trailer_status
+		dataType: string
+		lineageTag: 68e0f56d-685b-585a-9d28-68836c73c1e6
+		summarizeBy: none
+		sourceColumn: trailer_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_location
+		dataType: string
+		lineageTag: f5953b51-85ea-5dcb-82d0-975122fd0da7
+		summarizeBy: none
+		sourceColumn: current_location
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Trailers = m
+		mode: import
+		source =
+				let
+				    Source = AmazonRedshift.Database("fleetvision-wg.881226714470.ap-southeast-2.redshift-serverless.amazonaws.com:5439", "dev"),
+				    Result = Value.NativeQuery(Source, "SELECT * FROM fleetvision.trailers", null, [EnableFolding=false])
+				in
+				    Result
+
+	annotation PBI_ResultType = Table

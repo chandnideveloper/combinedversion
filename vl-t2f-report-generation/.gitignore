@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+
+# Virtual env
+venv/
+.venv/
+env/
+
+# Env files
+.env
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+
+# Docker
+*.tar
+
+# Cache
+.cache/
+
+# Test
+.pytest_cache/
+
+# Build
+dist/
+build/
+
+# Local data
+parsed_json/
+tableau_source/
+mapping.json
+Data Layer Response.txt
+
+# Debug/inspect/test scripts
+inspect_*.py
+test_*.py
+query_cosmos_logs.py
+search_sheet_id.py
+

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.0.0/schema.json",
+  "pageOrder": [
+    "executive-overview",
+    "fleet-operations",
+    "driver-performance",
+    "customer-revenue-analytics",
+    "my-new-sheet-1"
+  ],
+  "activePageName": "executive-overview"
+}

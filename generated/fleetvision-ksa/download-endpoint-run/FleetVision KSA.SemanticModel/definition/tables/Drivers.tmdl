@@ -1,0 +1,118 @@
+table Drivers
+	lineageTag: b5a283ed-c128-51a0-8b2d-9cee846a3a5d
+
+	column Driver = 'Drivers'[first_name] & " " & 'Drivers'[last_name]
+		dataType: string
+		lineageTag: 0f347a5b-bf02-5357-a474-62c0e3419f51
+		summarizeBy: none
+
+	column driver_id
+		dataType: string
+		lineageTag: ff7ba233-3d4c-5538-ad67-86e8724f0ce9
+		summarizeBy: none
+		sourceColumn: driver_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column first_name
+		dataType: string
+		lineageTag: 59e4ef1d-b004-59f4-8272-6058164eab60
+		summarizeBy: none
+		sourceColumn: first_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_name
+		dataType: string
+		lineageTag: e9e84dd3-793c-52e1-8f4b-467e8774d911
+		summarizeBy: none
+		sourceColumn: last_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column hire_date
+		dataType: dateTime
+		lineageTag: d3648a12-76b2-52f7-8a41-36102663f4b3
+		summarizeBy: none
+		sourceColumn: hire_date
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column termination_date
+		dataType: dateTime
+		lineageTag: 1e242dce-d9ef-5a26-b670-d45337a4331d
+		summarizeBy: none
+		sourceColumn: termination_date
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column license_number
+		dataType: string
+		lineageTag: c766caed-61a2-5537-aad0-3324fc8fc2d9
+		summarizeBy: none
+		sourceColumn: license_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column license_state
+		dataType: string
+		lineageTag: a7311415-3759-506e-bdb6-f06a089ca0a9
+		summarizeBy: none
+		sourceColumn: license_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_of_birth
+		dataType: dateTime
+		lineageTag: 993f311d-1e16-576c-b412-e72821e2feda
+		summarizeBy: none
+		sourceColumn: date_of_birth
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column home_terminal
+		dataType: string
+		lineageTag: 68634f9f-e5ae-586b-b168-1bb3cc4a147a
+		summarizeBy: none
+		sourceColumn: home_terminal
+
+		annotation SummarizationSetBy = Automatic
+
+	column employment_status
+		dataType: string
+		lineageTag: 87c433b3-8796-59a7-9447-09400ef28c74
+		summarizeBy: none
+		sourceColumn: employment_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column cdl_class
+		dataType: string
+		lineageTag: 7afe4b3f-44b7-57e5-80a0-c67edc7827f2
+		summarizeBy: none
+		sourceColumn: cdl_class
+
+		annotation SummarizationSetBy = Automatic
+
+	column years_experience
+		dataType: double
+		lineageTag: 85797267-21b3-574a-a017-c3c943dbf581
+		summarizeBy: sum
+		sourceColumn: years_experience
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Drivers = m
+		mode: import
+		source =
+				let
+				    Source = AmazonRedshift.Database("fleetvision-wg.881226714470.ap-southeast-2.redshift-serverless.amazonaws.com:5439", "dev"),
+				    Result = Value.NativeQuery(Source, "SELECT * FROM fleetvision.drivers", null, [EnableFolding=false])
+				in
+				    Result
+
+	annotation PBI_ResultType = Table

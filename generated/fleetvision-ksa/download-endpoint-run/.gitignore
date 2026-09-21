@@ -1,0 +1,4 @@
+# Power BI Desktop local state
+*.pbix
+.pbi/localSettings.json
+.pbi/cache.abf

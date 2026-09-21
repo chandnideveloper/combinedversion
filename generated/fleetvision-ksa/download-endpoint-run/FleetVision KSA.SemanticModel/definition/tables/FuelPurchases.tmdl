@@ -1,0 +1,89 @@
+table FuelPurchases
+	lineageTag: 6c3a21d2-b0ad-5e6a-94f0-aac32a8bf75c
+
+	column trip_id
+		dataType: string
+		lineageTag: 3597cd69-ad08-56e1-a904-b02ab6b9f14a
+		summarizeBy: none
+		sourceColumn: trip_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column fuel_purchase_id
+		dataType: string
+		lineageTag: 8c848f98-012f-55a8-a40f-669e3a6eddf8
+		summarizeBy: none
+		sourceColumn: fuel_purchase_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column purchase_date
+		dataType: dateTime
+		lineageTag: 86b98a74-c808-58e0-b7b2-ea8b715eac1b
+		summarizeBy: none
+		sourceColumn: purchase_date
+		formatString: General Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column fuel_city
+		dataType: string
+		lineageTag: 5062cd58-fc08-5929-96f4-5d507e73d51d
+		summarizeBy: none
+		sourceColumn: fuel_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column fuel_state
+		dataType: string
+		lineageTag: 1ee79352-50e2-5aa3-81d0-26ae2b94df18
+		summarizeBy: none
+		sourceColumn: fuel_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column gallons
+		dataType: double
+		lineageTag: 093543c3-cc92-5ed8-9c34-51b52ceb0367
+		summarizeBy: sum
+		sourceColumn: gallons
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column price_per_gallon
+		dataType: double
+		lineageTag: 44016af0-05fd-56a4-b01b-e9526d6ad4fb
+		summarizeBy: sum
+		sourceColumn: price_per_gallon
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column fuel_total_cost
+		dataType: double
+		lineageTag: b42d4880-553f-5dd1-9ba8-6876d0b1730e
+		summarizeBy: sum
+		sourceColumn: fuel_total_cost
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column fuel_card_number
+		dataType: string
+		lineageTag: 2fb4b2c9-14b3-50b7-acd0-84a39588d6ea
+		summarizeBy: none
+		sourceColumn: fuel_card_number
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FuelPurchases = m
+		mode: import
+		source =
+				let
+				    Source = AmazonRedshift.Database("fleetvision-wg.881226714470.ap-southeast-2.redshift-serverless.amazonaws.com:5439", "dev"),
+				    Result = Value.NativeQuery(Source, "SELECT * FROM fleetvision.fuelpurchases", null, [EnableFolding=false])
+				in
+				    Result
+
+	annotation PBI_ResultType = Table

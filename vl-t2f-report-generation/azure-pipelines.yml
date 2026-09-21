@@ -1,0 +1,125 @@
+trigger:
+  branches:
+    include:
+      - dev
+      - test
+      - main
+ 
+variables:
+  vmImage: 'ubuntu-latest'
+  imageName: 't2f-report-generation'
+  dockerfilePath: 'Dockerfile'
+  buildContext: '.'
+  tagBuildId: '$(Build.BuildId)'
+ 
+stages:
+# ==========================
+# STAGE: VALIDATE (Lint & Unit Test)
+# ==========================
+- stage: Validate
+  displayName: 'Lint & Unit Test'
+  jobs:
+  - job: LintAndTest
+    displayName: 'Run Flake8 syntax check and Unit Tests'
+    pool: { vmImage: $(vmImage) }
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.11'
+        addToPath: true
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install flake8 pytest
+      displayName: 'Install dependencies'
+    - script: |
+        flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+      displayName: 'Run Flake8 syntax check'
+    - script: |
+        python -m unittest discover -s tests -v
+      displayName: 'Run Unit Tests'
+
+# ==========================
+# STAGE: DEV
+# ==========================
+- stage: Dev
+  displayName: 'Build & Push Dev'
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+  jobs:
+  - deployment: BuildDev
+    environment: 'Development'
+    pool: { vmImage: $(vmImage) }
+    variables:
+      imageRepository: '$(imageName)-dev'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+          - task: Docker@2
+            displayName: 'Build and Push'
+            inputs:
+              containerRegistry: $(acrDev)
+              repository: $(imageRepository)
+              command: buildAndPush
+              Dockerfile: $(dockerfilePath)
+              tags: |
+                latest
+                $(tagBuildId)
+ 
+# ==========================
+# STAGE: TEST (Requires Approval)
+# ==========================
+- stage: Test
+  displayName: 'Build & Push Test'
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/test')
+  jobs:
+  - deployment: BuildTest
+    environment: 'Testing' # Linked to your UI Approvals
+    pool: { vmImage: $(vmImage) }
+    variables:
+      imageRepository: '$(imageName)-test'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+          - task: Docker@2
+            displayName: 'Build and Push'
+            inputs:
+              containerRegistry: $(acrTest)
+              repository: $(imageRepository)
+              command: buildAndPush
+              Dockerfile: $(dockerfilePath)
+              tags: |
+                latest
+                $(tagBuildId)
+ 
+# ==========================
+# STAGE: PROD (Requires Approval)
+# ==========================
+- stage: Prod
+  displayName: 'Build & Push Prod'
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+  jobs:
+  - deployment: BuildProd
+    environment: 'Production' # Linked to your UI Approvals
+    pool: { vmImage: $(vmImage) }
+    variables:
+      imageRepository: '$(imageName)-prod'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+          - task: Docker@2
+            displayName: 'Build and Push'
+            inputs:
+              containerRegistry: $(acrProd)
+              repository: $(imageRepository)
+              command: buildAndPush
+              Dockerfile: $(dockerfilePath)
+              tags: |
+                latest
+                $(tagBuildId)
+ 

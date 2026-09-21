@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-dotenv
+aiohttp
+autogen
+openai
+azure-identity
+azure-keyvault-secrets
+networkx
+pytz
+tzdata
+motor

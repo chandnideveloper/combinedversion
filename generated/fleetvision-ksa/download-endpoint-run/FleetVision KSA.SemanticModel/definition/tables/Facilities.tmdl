@@ -1,0 +1,96 @@
+table Facilities
+	lineageTag: eca24c6c-83b3-5419-a289-29e6960295aa
+
+	column facility_id
+		dataType: string
+		lineageTag: c700d0aa-3c5c-5b30-8f4e-c99a9a385da1
+		summarizeBy: none
+		sourceColumn: facility_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column facility_name
+		dataType: string
+		lineageTag: 356ad5c7-1cd3-5977-b34e-824fd53af81f
+		summarizeBy: none
+		sourceColumn: facility_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column facility_type
+		dataType: string
+		lineageTag: 3eca9b5c-5eac-58f4-9f2c-d16582ab3dd7
+		summarizeBy: none
+		sourceColumn: facility_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		lineageTag: d71be1f5-b0f6-51f2-8f7b-a549cc2ab774
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: c0842320-6428-5c14-ae71-462eb7b1b698
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column latitude
+		dataType: double
+		lineageTag: 10ba13ce-58c1-5dd0-ad5a-863e782c5f21
+		summarizeBy: sum
+		sourceColumn: latitude
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column longitude
+		dataType: double
+		lineageTag: 6f624232-1bfb-57e6-bb68-5688203ca06f
+		summarizeBy: sum
+		sourceColumn: longitude
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column dock_doors
+		dataType: double
+		lineageTag: cb2ce4bf-cdd3-5827-a116-649c76c6b9e7
+		summarizeBy: sum
+		sourceColumn: dock_doors
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column operating_hours
+		dataType: string
+		lineageTag: 085355eb-63c6-56ba-a29d-e0bcf0dcdf27
+		summarizeBy: none
+		sourceColumn: operating_hours
+
+		annotation SummarizationSetBy = Automatic
+
+	column longitude_latitude
+		dataType: string
+		lineageTag: 3168d3a5-b189-536e-b479-e1c824a26724
+		summarizeBy: none
+		sourceColumn: longitude_latitude
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Facilities = m
+		mode: import
+		source =
+				let
+				    Source = AmazonRedshift.Database("fleetvision-wg.881226714470.ap-southeast-2.redshift-serverless.amazonaws.com:5439", "dev"),
+				    Result = Value.NativeQuery(Source, "SELECT * FROM fleetvision.facilities", null, [EnableFolding=false])
+				in
+				    Result
+
+	annotation PBI_ResultType = Table

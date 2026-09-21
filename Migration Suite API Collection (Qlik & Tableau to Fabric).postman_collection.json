@@ -1,0 +1,1051 @@
+{
+  "info": {
+    "_postman_id": "5d3c078f-c844-4dc5-bd5f-bb327f90e0ac",
+    "name": "Migration Suite API Collection (Qlik & Tableau to Fabric)",
+    "description": "Ready-to-test Postman collection for all core migration microservices:\n1. az-repo-mongodb-vl (MongoDB Migration Store)\n2. az-qlikengine-api-repo (Qlik Engine API Extractor)\n3. vl-t2f-mongo-db (FastAPI MongoDB Async Store)\n4. vl-t2f-tableu-base-api (Tableau Base API Store with automatic PAT Token & connection resolution)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39112712"
+  },
+  "item": [
+    {
+      "name": "1. MongoDB Migration Store (az-repo-mongodb-vl)",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_db_base_url}}/",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Mapping by Run ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_db_base_url}}/mapping/by-run/{{sample_run_id}}",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "mapping",
+                "by-run",
+                "{{sample_run_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Mapping by App ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_db_base_url}}/mapping/by-app/{{sample_app_id}}",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "mapping",
+                "by-app",
+                "{{sample_app_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Mapping by Folder Name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_db_base_url}}/mapping/{{sample_folder_name}}",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "mapping",
+                "{{sample_folder_name}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upsert Mapping Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"folder_name\": \"{{sample_folder_name}}\",\n  \"app_id\": \"{{sample_app_id}}\",\n  \"space_id\": \"personal\",\n  \"app_name\": \"{{sample_folder_name}}\",\n  \"run_id\": \"{{sample_run_id}}\",\n  \"mapping_result\": {\n    \"status\": \"success\",\n    \"workbook_metadata\": {\n      \"app_id\": \"{{sample_app_id}}\",\n      \"app_name\": \"{{sample_folder_name}}\",\n      \"run_id\": \"{{sample_run_id}}\"\n    },\n    \"tables\": [\n      {\n        \"name\": \"Trips\",\n        \"columns\": [\n          { \"name\": \"trip_id\", \"data_type\": \"STRING\", \"is_key\": true },\n          { \"name\": \"driver_id\", \"data_type\": \"STRING\" },\n          { \"name\": \"actual_distance_miles\", \"data_type\": \"NUMBER\" }\n        ]\n      }\n    ],\n    \"measures\": [],\n    \"relationships\": []\n  }\n}"
+            },
+            "url": {
+              "raw": "{{mongo_db_base_url}}/mapping",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "mapping"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Parsing by Run ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_db_base_url}}/parsing/by-run/{{sample_run_id}}",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "parsing",
+                "by-run",
+                "{{sample_run_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Parsing by App ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_db_base_url}}/parsing/by-app/{{sample_app_id}}",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "parsing",
+                "by-app",
+                "{{sample_app_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upsert Parsing Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"folder_name\": \"{{sample_folder_name}}\",\n  \"app_id\": \"{{sample_app_id}}\",\n  \"space_id\": \"personal\",\n  \"app_name\": \"{{sample_folder_name}}\",\n  \"run_id\": \"{{sample_run_id}}\",\n  \"parsing_result\": {\n    \"appId\": \"{{sample_app_id}}\",\n    \"appName\": \"{{sample_folder_name}}\",\n    \"tables\": {},\n    \"fields\": [],\n    \"sheets\": []\n  }\n}"
+            },
+            "url": {
+              "raw": "{{mongo_db_base_url}}/parsing",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "parsing"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Assessment by Run ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_db_base_url}}/assessment/by-run/{{sample_run_id}}",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "assessment",
+                "by-run",
+                "{{sample_run_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upsert Assessment Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"folder_name\": \"{{sample_folder_name}}\",\n  \"app_id\": \"{{sample_app_id}}\",\n  \"space_id\": \"personal\",\n  \"app_name\": \"{{sample_folder_name}}\",\n  \"run_id\": \"{{sample_run_id}}\",\n  \"assessment_result\": {\n    \"complexity\": \"Medium\",\n    \"supported_visuals_percentage\": 96.5,\n    \"unsupported_features\": []\n  }\n}"
+            },
+            "url": {
+              "raw": "{{mongo_db_base_url}}/assessment",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "assessment"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Report Generation by Run ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_db_base_url}}/report-generation/by-run/{{sample_run_id}}",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "report-generation",
+                "by-run",
+                "{{sample_run_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Run History Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"folder_name\": \"{{sample_folder_name}}\",\n  \"app_name\": \"{{sample_folder_name}}\",\n  \"app_id\": \"{{sample_app_id}}\",\n  \"space_id\": \"personal\",\n  \"run_id\": \"{{sample_run_id}}\",\n  \"user_email\": \"user@company.com\",\n  \"parsing_status\": \"completed\",\n  \"parsing_message\": \"Parsing successful\",\n  \"mapping_status\": \"completed\",\n  \"mapping_message\": \"Mapping successful\",\n  \"assessment_status\": \"completed\",\n  \"assessment_message\": \"Assessment completed\",\n  \"report_generation_status\": \"completed\",\n  \"report_generation_message\": \"Report generated\"\n}"
+            },
+            "url": {
+              "raw": "{{mongo_db_base_url}}/run-history/{{sample_folder_name}}",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "run-history",
+                "{{sample_folder_name}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Log API Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_name\": \"az-wa-repo-mappingagent\",\n  \"endpoint\": \"/mapping\",\n  \"status_code\": 500,\n  \"error_message\": \"Redshift connection timed out\",\n  \"correlation_id\": \"corr-8849-ab12\"\n}"
+            },
+            "url": {
+              "raw": "{{mongo_db_base_url}}/api-error-logs",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "api-error-logs"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Qlik Server Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mongo_db_base_url}}/qlik",
+              "host": [
+                "{{mongo_db_base_url}}"
+              ],
+              "path": [
+                "qlik"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Qlik Engine API (az-qlikengine-api-repo)",
+      "item": [
+        {
+          "name": "Server Info & Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete App Extraction (/all)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/all/{{sample_app_id}}?includeRaw=false",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "all",
+                "{{sample_app_id}}"
+              ],
+              "query": [
+                {
+                  "key": "includeRaw",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sheets & Visualizations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/sheets/{{sample_app_id}}",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "sheets",
+                "{{sample_app_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Fields & Tables",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/fields/{{sample_app_id}}",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "fields",
+                "{{sample_app_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Data Sources & Connections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/datasources/{{sample_app_id}}",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "datasources",
+                "{{sample_app_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Master Dimensions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/dimensions/{{sample_app_id}}",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "dimensions",
+                "{{sample_app_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Master Measures",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/measures/{{sample_app_id}}",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "measures",
+                "{{sample_app_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Data Model Relationships",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/relationships/{{sample_app_id}}",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "relationships",
+                "{{sample_app_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Load Script & Section Access",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/script/{{sample_app_id}}",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "script",
+                "{{sample_app_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Variables",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/variables/{{sample_app_id}}",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "variables",
+                "{{sample_app_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bookmarks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/bookmarks/{{sample_app_id}}",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "bookmarks",
+                "{{sample_app_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Spaces",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/getSpaces",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "getSpaces"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Apps in Personal Space",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{qlik_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{qlik_engine_base_url}}/getApps/personal",
+              "host": [
+                "{{qlik_engine_base_url}}"
+              ],
+              "path": [
+                "getApps",
+                "personal"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. FastAPI Async Store (vl-t2f-mongo-db)",
+      "item": [
+        {
+          "name": "Root Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{async_mongo_base_url}}/",
+              "host": [
+                "{{async_mongo_base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Next Run Number Counter",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{async_mongo_base_url}}/api/records/next-run-no",
+              "host": [
+                "{{async_mongo_base_url}}"
+              ],
+              "path": [
+                "api",
+                "records",
+                "next-run-no"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Semantic Kernel State",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{async_mongo_base_url}}/api/records/semantic-kernel?run_id={{sample_run_id}}",
+              "host": [
+                "{{async_mongo_base_url}}"
+              ],
+              "path": [
+                "api",
+                "records",
+                "semantic-kernel"
+              ],
+              "query": [
+                {
+                  "key": "run_id",
+                  "value": "{{sample_run_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upsert Semantic Kernel State",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"run_id\": \"{{sample_run_id}}\",\n  \"type\": \"semantic_kernel_result\",\n  \"status\": \"completed\",\n  \"total_apps\": 1,\n  \"total_migrated\": 1,\n  \"total_failed\": 0,\n  \"total_cancelled\": 0,\n  \"total_pending\": 0,\n  \"total_ran_till_parsing\": 1,\n  \"total_generation_completed\": 1,\n  \"total_validation_skipped\": 0,\n  \"payload\": {\n    \"current_stage\": \"generation\",\n    \"timestamp\": \"2026-08-17T05:50:00Z\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{async_mongo_base_url}}/api/records/semantic-kernel",
+              "host": [
+                "{{async_mongo_base_url}}"
+              ],
+              "path": [
+                "api",
+                "records",
+                "semantic-kernel"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Interactive Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{async_mongo_base_url}}/api/records/interactive-status",
+              "host": [
+                "{{async_mongo_base_url}}"
+              ],
+              "path": [
+                "api",
+                "records",
+                "interactive-status"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Tableau Base API Store (vl-t2f-tableu-base-api)",
+      "item": [
+        {
+          "name": "Root Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{tableau_api_base_url}}/",
+              "host": [
+                "{{tableau_api_base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "0. Create / Register Connection (MongoDB)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"env_type\": \"cloud\",\n  \"connection_name\": \"TechCoreTeam Tableau Cloud\",\n  \"tableau_server_url\": \"{{tableau_server_url}}\",\n  \"tableau_site_name\": \"{{tableau_site_name}}\",\n  \"tableau_token_name\": \"{{tableau_token_name}}\",\n  \"tableau_token_value\": \"YOUR_PAT_TOKEN_SECRET_HERE\"\n}"
+            },
+            "url": {
+              "raw": "{{tableau_api_base_url}}/connections",
+              "host": [
+                "{{tableau_api_base_url}}"
+              ],
+              "path": [
+                "connections"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1. Store Server Credentials (PAT Token) Cloud",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"TABLEAU_SERVER_URL\": \"{{tableau_server_url}}\",\n  \"TABLEAU_TOKEN_NAME\": \"{{tableau_token_name}}\",\n  \"TABLEAU_TOKEN_VALUE\": \"YOUR_PAT_TOKEN_SECRET_HERE\",\n  \"TABLEAU_SERVER_TOKEN_SECRET\": \"optional-secret\"\n}"
+            },
+            "url": {
+              "raw": "{{tableau_api_base_url}}/store-server-url",
+              "host": [
+                "{{tableau_api_base_url}}"
+              ],
+              "path": [
+                "store-server-url"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get Projects (Auto-resolves Token from DB) Cloud",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"connection_id\": \"conn-bcff9826b750\"\n}"
+            },
+            "url": {
+              "raw": "{{tableau_api_base_url}}/propagate-tableau-details",
+              "host": [
+                "{{tableau_api_base_url}}"
+              ],
+              "path": [
+                "propagate-tableau-details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Workbooks (Auto-resolves Token from DB) Cloud",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"connection_id\": \"conn-bcff9826b750\",\n  \"PROJECT_ID\": [\"your-project-guid-here\"]\n}"
+            },
+            "url": {
+              "raw": "{{tableau_api_base_url}}/get-workbooks",
+              "host": [
+                "{{tableau_api_base_url}}"
+              ],
+              "path": [
+                "get-workbooks"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Store Tableau Cloud (TCM) Credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"TCM_BASE_URL\": \"{{tableau_server_url}}\",\n  \"TABLEAU_SERVER_URL\": \"{{tableau_server_url}}\",\n  \"TABLEAU_TOKEN_NAME\": \"CloudPAT\",\n  \"TABLEAU_TOKEN_VALUE\": \"cloud-secret-token-value\",\n  \"TCM_TOKEN_SECRET\": \"optional-tcm-secret\"\n}"
+            },
+            "url": {
+              "raw": "{{tableau_api_base_url}}/store-cloud-url",
+              "host": [
+                "{{tableau_api_base_url}}"
+              ],
+              "path": [
+                "store-cloud-url"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "SERVER: Get All Sites",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"TABLEAU_SERVER_URL\": \"{{tableau_server_url}}\"\n}"
+            },
+            "url": {
+              "raw": "{{tableau_api_base_url}}/server/sites",
+              "host": [
+                "{{tableau_api_base_url}}"
+              ],
+              "path": [
+                "server",
+                "sites"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "SERVER: Get Projects by Site",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"TABLEAU_SERVER_URL\": \"{{tableau_server_url}}\",\n  \"site_id\": \"site-guid-here\"\n}"
+            },
+            "url": {
+              "raw": "{{tableau_api_base_url}}/server/projects",
+              "host": [
+                "{{tableau_api_base_url}}"
+              ],
+              "path": [
+                "server",
+                "projects"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "SERVER: Get Workbooks by Project",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"TABLEAU_SERVER_URL\": \"{{tableau_server_url}}\",\n  \"site_id\": \"site-guid-here\",\n  \"project_id\": \"project-guid-here\"\n}"
+            },
+            "url": {
+              "raw": "{{tableau_api_base_url}}/server/workbooks",
+              "host": [
+                "{{tableau_api_base_url}}"
+              ],
+              "path": [
+                "server",
+                "workbooks"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CLOUD: Get All Tenant Sites (TCM)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"TCM_BASE_URL\": \"{{tableau_server_url}}\"\n}"
+            },
+            "url": {
+              "raw": "{{tableau_api_base_url}}/get-all-tenant-sites",
+              "host": [
+                "{{tableau_api_base_url}}"
+              ],
+              "path": [
+                "get-all-tenant-sites"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "mongo_db_base_url",
+      "value": "https://mongo-db-k15s.onrender.com"
+    },
+    {
+      "key": "qlik_engine_base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "async_mongo_base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "tableau_api_base_url",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "tableau_server_url",
+      "value": "https://prod-in-a.online.tableau.com"
+    },
+    {
+      "key": "tableau_site_name",
+      "value": "techcoreteam2026-50af0fff68"
+    },
+    {
+      "key": "tableau_token_name",
+      "value": "test token"
+    },
+    {
+      "key": "sample_run_id",
+      "value": "2153e63f-2217-4ba5-9ccd-4bfe6af10448"
+    },
+    {
+      "key": "sample_app_id",
+      "value": "a4bbab64-3d8f-49de-8fcb-296c021b0ffa"
+    },
+    {
+      "key": "sample_folder_name",
+      "value": "FleetVision KSA"
+    },
+    {
+      "key": "qlik_api_key",
+      "value": "your_qlik_api_key_here"
+    }
+  ]
+}

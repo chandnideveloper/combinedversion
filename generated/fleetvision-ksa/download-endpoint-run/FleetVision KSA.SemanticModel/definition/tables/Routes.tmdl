@@ -1,0 +1,94 @@
+table Routes
+	lineageTag: 93f37141-d3c2-56bb-b0a2-4b0103dc7a39
+
+	column Route = 'Routes'[origin_city] & " → " & 'Routes'[destination_city]
+		dataType: string
+		lineageTag: 5a19928d-74e2-5ea7-bead-59f1476b0174
+		summarizeBy: none
+
+	column route_id
+		dataType: string
+		lineageTag: 9253f750-0daf-541e-a41e-f3a85786e891
+		summarizeBy: none
+		sourceColumn: route_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column origin_city
+		dataType: string
+		lineageTag: b0a4338f-646b-5168-9396-8c7ab6e1e4c9
+		summarizeBy: none
+		sourceColumn: origin_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column origin_state
+		dataType: string
+		lineageTag: ec33afe8-f83d-5f0b-a89a-5a019ac8a7e0
+		summarizeBy: none
+		sourceColumn: origin_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column destination_city
+		dataType: string
+		lineageTag: 3d111ce7-9772-5c85-8695-e1eee9b231f3
+		summarizeBy: none
+		sourceColumn: destination_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column destination_state
+		dataType: string
+		lineageTag: ba882fe1-8ab5-56df-862a-196b0c49407c
+		summarizeBy: none
+		sourceColumn: destination_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column typical_distance_miles
+		dataType: double
+		lineageTag: dabf4cb2-3268-5938-a8c0-ab380f252996
+		summarizeBy: sum
+		sourceColumn: typical_distance_miles
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column base_rate_per_mile
+		dataType: double
+		lineageTag: 605fcf2e-c734-5400-bd98-d45148bd7781
+		summarizeBy: sum
+		sourceColumn: base_rate_per_mile
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column fuel_surcharge_rate
+		dataType: double
+		lineageTag: 033fed09-6dd1-535b-b5e9-606d0a9fed9f
+		summarizeBy: sum
+		sourceColumn: fuel_surcharge_rate
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	column typical_transit_days
+		dataType: double
+		lineageTag: 6f23b6f1-12ca-5959-810f-624b91b019cf
+		summarizeBy: sum
+		sourceColumn: typical_transit_days
+		formatString: #,##0.00
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Routes = m
+		mode: import
+		source =
+				let
+				    Source = AmazonRedshift.Database("fleetvision-wg.881226714470.ap-southeast-2.redshift-serverless.amazonaws.com:5439", "dev"),
+				    Result = Value.NativeQuery(Source, "SELECT * FROM fleetvision.routes", null, [EnableFolding=false])
+				in
+				    Result
+
+	annotation PBI_ResultType = Table
