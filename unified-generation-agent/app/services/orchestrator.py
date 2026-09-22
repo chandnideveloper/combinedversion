@@ -51,14 +51,44 @@ class MigrationOrchestrator:
             f"run_id={request.run_id}, repo={gh.owner}/{gh.repo_name}@{gh.branch} in dir='{target_dir}'"
         )
 
+        from app.services.activity_logger import log_activity_async
+        # Resolve IDs for logging
+        project_id = "unknown"
+        workbook_id = "unknown"
+        if source_type == "qlik":
+            project_id = request.source.get("space_id", "unknown")
+            workbook_id = request.source.get("app_id", "unknown")
+        elif source_type == "tableau":
+            project_id = request.source.get("project_id", "unknown")
+            workbook_id = request.source.get("workbook_id", "unknown")
+
+        # Agent Action: Stage 1
+        await log_activity_async(
+            run_id=request.run_id,
+            project_id=project_id,
+            workbook_id=workbook_id,
+            summary="Report Generation started."
+        )
+
         if source_type == "qlik":
             raw_result = await self._run_qlik_generation(request, client_token)
-            return self._normalize_qlik_result(request, raw_result)
+            final_res = self._normalize_qlik_result(request, raw_result)
         elif source_type == "tableau":
             raw_result = await self._run_tableau_generation(request, client_token)
-            return self._normalize_tableau_result(request, raw_result)
+            final_res = self._normalize_tableau_result(request, raw_result)
         else:
             raise ValueError(f"Unsupported source_type: '{source_type}'. Must be 'qlik' or 'tableau'")
+
+        # Agent Action: Stage 5
+        if final_res.status == "success":
+            await log_activity_async(
+                run_id=request.run_id,
+                project_id=project_id,
+                workbook_id=workbook_id,
+                summary="Report Generation completed successfully."
+            )
+
+        return final_res
 
     async def _run_qlik_generation(
         self, request: UnifiedMigrateRequest, client_token: Optional[str]

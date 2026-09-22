@@ -115,6 +115,13 @@ def generate(mapping_document: Dict[str, Any], request: GenerateRequest) -> Dict
         or f"run-{ts_str}-{uuid.uuid4().hex[:6]}"
     )
 
+    from app.services.activity_logger import log_activity_sync
+    log_activity_sync(
+        run_id=request.run_id or "unknown",
+        project_id=request.space_id or "unknown",
+        workbook_id=request.app_id or "unknown",
+        summary="Building TMDL semantic model."
+    )
     _log_action_sync("Generating Power BI TMDL model & semantic relationships", request, app_name, f"Starting generation for app {app_name}")
 
     if request.offline_sample_data:
@@ -155,6 +162,13 @@ def generate(mapping_document: Dict[str, Any], request: GenerateRequest) -> Dict
     notes = []
     report_stats: Dict[str, Any] = {}
     if request.target != Target.SEMANTIC_MODEL_ONLY:
+        # Agent Action: Stage 3
+        log_activity_sync(
+            run_id=request.run_id or "unknown",
+            project_id=request.space_id or "unknown",
+            workbook_id=request.app_id or "unknown",
+            summary="Generating Power BI visual layouts (PBIR) from source sheets."
+        )
         _log_action_sync("Generating PBIR visual layout & JSON definitions", request, app_name, "Building PBIR visual definitions")
         report_files, notes, report_stats = build_report(
             mapping, app_name, f"../{app_name}.SemanticModel"
@@ -370,6 +384,14 @@ def _deploy(
 
     try:
         if request.deploy == Deploy.FABRIC:
+            # Agent Action: Stage 4
+            from app.services.activity_logger import log_activity_sync
+            log_activity_sync(
+                run_id=request.run_id or "unknown",
+                project_id=request.space_id or "unknown",
+                workbook_id=request.app_id or "unknown",
+                summary="Deploying generated Power BI project to Microsoft Fabric."
+            )
             ws = request.workspace_id
             tok = request.fabric_access_token
             if not ws or ws == "personal" or ws.startswith("{{"):

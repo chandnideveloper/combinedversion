@@ -10,8 +10,8 @@ from app.tableau.services.action_logger import ActionLogger
 from app.tableau.core_logic.metadata_exporter.metadata_exporter import MetadataExporter
 import json
 from .memory_file_agent import MemoryFileAgent
-from ..fabric_agent.fabric_agent import FabricAgent
-from ..git_agent.git_agent import GitAgent
+from app.tableau.agents.fabric_agent.fabric_agent import FabricAgent
+from app.tableau.agents.git_agent.git_agent import GitAgent
 from azure.identity.aio import DefaultAzureCredential
 from azure.keyvault.secrets.aio import SecretClient
 
@@ -975,6 +975,14 @@ class CoordinatorAgent(AssistantAgent, FolderManagerMixin, MetadataExtractorMixi
 
         try:
             # 2. Generate Reports & Visuals
+            # Agent Action: Stage 3
+            await log_activity_async(
+                run_id=run_id,
+                project_id=project_id,
+                workbook_id=workbook_id,
+                summary="Generating Power BI visual layouts (PBIR) from source sheets."
+            )
+
             success = await self.report_generator.generate_and_push_report(
                 destination_folder,
                 new_app_name,
@@ -1006,6 +1014,15 @@ class CoordinatorAgent(AssistantAgent, FolderManagerMixin, MetadataExtractorMixi
                 safe_rid = run_id.replace('-', '_')
                 dl_schema = f"schema_{safe_wid}_{safe_rid}"
                 log_info(f"[CoordinatorAgent] Using Direct Lake schema: {dl_schema}")
+
+            # Agent Action: Stage 2
+            from app.services.activity_logger import log_activity_async
+            await log_activity_async(
+                run_id=run_id,
+                project_id=project_id,
+                workbook_id=workbook_id,
+                summary="Building TMDL semantic model."
+            )
 
             tmdl_result = await self.tmdl_generator.generate_tmdl_structure(
                 api_data, semantic_folder, new_app_name, 
@@ -1103,6 +1120,14 @@ class CoordinatorAgent(AssistantAgent, FolderManagerMixin, MetadataExtractorMixi
                 return error_response
 
             try:
+                # Agent Action: Stage 4
+                await log_activity_async(
+                    run_id=run_id,
+                    project_id=project_id,
+                    workbook_id=workbook_id,
+                    summary="Deploying generated Power BI project to Microsoft Fabric."
+                )
+
                 fabric_agent = FabricAgent()
             
                 # Proactive Token Validation
