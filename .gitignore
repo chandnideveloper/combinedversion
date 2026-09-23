@@ -37,3 +37,7 @@ Thumbs.db
 
 # Local config & secret backups (keep standard sample .env if desired, but ignore local caches)
 # Keep .env files committed only if desired, but ignore local OS caches
+
+# Generation agent local run outputs
+unified-generation-agent/generated/
+unified-generation-agent/response/

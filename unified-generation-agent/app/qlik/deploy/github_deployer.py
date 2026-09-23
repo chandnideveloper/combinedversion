@@ -177,28 +177,29 @@ def deploy(
     def _upload_blob(item: Tuple[str, str]) -> Tuple[str, str]:
         path, content = item
         last_resp = None
-        for attempt in range(3):
+        for attempt in range(5):
             try:
                 blob_resp = session.post(
                     f"{base}/git/blobs",
                     json={"content": content, "encoding": "utf-8"},
-                    timeout=120,
+                    timeout=60,
                 )
                 if blob_resp.status_code < 300:
                     blob_data = blob_resp.json()
                     entry_path = f"{prefix}/{path}".strip("/") if prefix else path.strip("/")
                     return entry_path, blob_data["sha"]
                 last_resp = blob_resp
-            except Exception as e:
-                if attempt == 2:
+            except (requests.RequestException, ConnectionError, TimeoutError, OSError) as e:
+                if attempt == 4:
+                    logger.error("Failed to upload blob '%s' after 5 attempts: %s", path, e)
                     raise
             import time
-            time.sleep(0.5 * (attempt + 1))
+            time.sleep(min(8, 0.5 * (2 ** attempt)))
         blob_data = _check(last_resp, f"create blob {path}")
         entry_path = f"{prefix}/{path}".strip("/") if prefix else path.strip("/")
         return entry_path, blob_data["sha"]
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         futures = {executor.submit(_upload_blob, item): item[0] for item in sorted(package.items())}
         for future in concurrent.futures.as_completed(futures):
             entry_path, blob_sha = future.result()

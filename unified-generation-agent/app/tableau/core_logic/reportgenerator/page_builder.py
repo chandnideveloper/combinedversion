@@ -473,9 +473,7 @@ class PageBuilderMixin(FilterBuilderMixin, SlicerBuilderMixin, ProjectionBuilder
                     p_copy.pop("active", None)
                     values_projections.append(p_copy)
                 query_state = {
-                    "Values": {"projections": values_projections},
-                    "Category": {"projections": category_projections},
-                    "Y": {"projections": y_projections}
+                    "Values": {"projections": values_projections}
                 }
             elif visual_type == "pivotTable":
                 row_projs = self._build_category_projections(rows, field_to_table, default_table, display_to_bi_name, is_direct_lake=is_direct_lake, field_to_format=local_field_to_format)

@@ -79,25 +79,29 @@ def _extract_base_field(field_expr: str) -> str:
     clean = field_expr.strip()
     if clean.startswith("[") and clean.endswith("]"):
         clean = clean[1:-1].strip()
-    m = re.search(r"\b(?:Sum|Count|Avg|Min|Max|CountRows|DistinctCount)\s*\(\s*(?:\{.*?\}\s*)?(?:\[)?([a-zA-Z0-9_\s]+)(?:\])?\s*\)", clean, re.IGNORECASE)
+    m = re.search(r"\b(?:Sum|Count|Avg|Min|Max|CountRows|DistinctCount)\s*\(\s*(?:\{.*?\}\s*)?(?:\[)?([a-zA-Z0-9_\s.]+)(?:\])?\s*\)", clean, re.IGNORECASE)
     if m:
-        return m.group(1).strip()
-    m_col = re.search(r"\[([a-zA-Z0-9_\s]+)\]", clean)
+        clean = m.group(1).strip()
+    m_col = re.search(r"\[([a-zA-Z0-9_\s.]+)\]", clean)
     if m_col:
-        return m_col.group(1).strip()
+        clean = m_col.group(1).strip()
     # Strip drilldown arrow if single extraction
     if " -> " in clean:
-        return clean.split(" -> ")[0].strip()
+        clean = clean.split(" -> ")[0].strip()
     if " > " in clean:
-        return clean.split(" > ")[0].strip()
+        clean = clean.split(" > ")[0].strip()
     # Strip common Qlik dimension labels like "Region Drill-down" -> "Region"
     if re.search(r"[\s_-]*drill[\s_-]*down$", clean, re.IGNORECASE):
-        return re.sub(r"[\s_-]*drill[\s_-]*down$", "", clean, flags=re.IGNORECASE).strip()
-    # Strip Qlik autoCalendar / derived date suffixes (e.g. transaction_date.YearMonth -> transaction_date)
+        clean = re.sub(r"[\s_-]*drill[\s_-]*down$", "", clean, flags=re.IGNORECASE).strip()
+    # Strip Qlik autoCalendar / derived date suffixes ONLY (e.g. transaction_date.YearMonth -> transaction_date)
     if "." in clean and not clean.startswith("."):
         parts = clean.split(".")
-        if len(parts) >= 2 and parts[0].strip():
+        date_suffixes = {"year", "quarter", "month", "week", "day", "yearmonth", "date", "datehierarchy", "variation"}
+        if len(parts) >= 2 and parts[-1].lower() in date_suffixes:
             return parts[0].strip()
+        # If Table.Column, take the column part
+        if len(parts) == 2 and parts[1].strip():
+            return parts[1].strip()
     return clean
 
 
@@ -115,6 +119,24 @@ def _match_field(
     base = _extract_base_field(clean)
     b_lower = base.lower()
 
+    # 0. Dot notation e.g. Doctors.DEPARTMENT or BILLS.PATIENT_ID or [APPOINTMENTS].[PATIENT_ID]
+    if "." in clean:
+        parts = clean.split(".", 1)
+        tbl_cand = parts[0].strip().strip("[]'\"").lower()
+        col_cand = parts[1].strip().strip("[]'\"").lower()
+        full_key = f"{tbl_cand}.{col_cand}"
+        if field_resolver and full_key in field_resolver:
+            ent, prop = field_resolver[full_key]
+            return (ent, prop, False)
+        if field_resolver and col_cand in field_resolver:
+            ent, prop = field_resolver[col_cand]
+            if ent.lower() == tbl_cand:
+                return (ent, prop, False)
+        # Search column_home for matching table and column
+        for c, t in column_home.items():
+            if t.lower() == tbl_cand and c.lower() in (col_cand, f"{tbl_cand}_{col_cand}", col_cand.replace(" ", "_"), col_cand.replace("_", " ")):
+                return (t, c, False)
+
     # 1. Exact or base in measure_home
     if clean in measure_home:
         return (measure_home[clean], clean, True)
@@ -124,7 +146,7 @@ def _match_field(
 
     # 2. Exact or base in field_resolver
     if field_resolver:
-        for k in (c_lower, b_lower):
+        for k in (c_lower, b_lower, c_lower.replace("_", " "), b_lower.replace("_", " "), c_lower.replace(" ", "_"), b_lower.replace(" ", "_")):
             if k in field_resolver:
                 ent, prop = field_resolver[k]
                 return (ent, prop, False)
@@ -135,34 +157,36 @@ def _match_field(
     if base in column_home:
         return (column_home[base], base, False)
     for col in column_home:
-        if col.lower() in (c_lower, b_lower):
+        if col.lower() in (c_lower, b_lower, c_lower.replace("_", " "), b_lower.replace("_", " "), c_lower.replace(" ", "_"), b_lower.replace(" ", "_")):
             return (column_home[col], col, False)
 
-    # 4. Fuzzy match against measures (handles typos like "Revneue" -> "Revenue")
+    # 4. Fuzzy match against measures (case-insensitive, handles typos like "Revneue" -> "Revenue")
     if measure_home:
-        meas_names = list(measure_home.keys())
-        close_meas = difflib.get_close_matches(clean, meas_names, n=1, cutoff=0.75)
-        if not close_meas:
-            close_meas = difflib.get_close_matches(base, meas_names, n=1, cutoff=0.75)
+        meas_map = {m.lower(): m for m in measure_home}
+        close_meas = difflib.get_close_matches(c_lower, list(meas_map.keys()), n=1, cutoff=0.75)
+        if not close_meas and b_lower != c_lower:
+            close_meas = difflib.get_close_matches(b_lower, list(meas_map.keys()), n=1, cutoff=0.75)
         if close_meas:
-            m = close_meas[0]
+            m = meas_map[close_meas[0]]
             return (measure_home[m], m, True)
 
-    # 5. Fuzzy match against columns
-    all_cols = list(column_home.keys())
+    # 5. Fuzzy match against columns (case-insensitive)
+    col_map = {c.lower(): (column_home[c], c) for c in column_home}
     if field_resolver:
-        all_cols.extend([prop for ent, prop in field_resolver.values()])
-    if all_cols:
-        close_cols = difflib.get_close_matches(clean, all_cols, n=1, cutoff=0.75)
-        if not close_cols:
-            close_cols = difflib.get_close_matches(base, all_cols, n=1, cutoff=0.75)
+        for k, val in field_resolver.items():
+            if isinstance(val, (tuple, list)) and len(val) == 2:
+                e, p = val
+                if p.lower() not in col_map:
+                    col_map[p.lower()] = (e, p)
+                if k.lower() not in col_map:
+                    col_map[k.lower()] = (e, p)
+    if col_map:
+        close_cols = difflib.get_close_matches(c_lower, list(col_map.keys()), n=1, cutoff=0.75)
+        if not close_cols and b_lower != c_lower:
+            close_cols = difflib.get_close_matches(b_lower, list(col_map.keys()), n=1, cutoff=0.75)
         if close_cols:
-            col_match = close_cols[0]
-            if field_resolver and col_match.lower() in field_resolver:
-                ent, prop = field_resolver[col_match.lower()]
-                return (ent, prop, False)
-            if col_match in column_home:
-                return (column_home[col_match], col_match, False)
+            ent, prop = col_map[close_cols[0]]
+            return (ent, prop, False)
 
 def _parse_font_size(size_obj: Any) -> Optional[float]:
     """Parse font size from float, int, str ('14pt', '14px', '14', 'M'), or dict ({'fixed': '14'})."""
@@ -274,26 +298,42 @@ def build_visual(
             agg = text(entry.get("aggregation") or "None")
 
             # Validate whether (ent, prop) is consistent with the model
-            lookup_key = (prop or field_name).strip().lower()
-            if lookup_key in field_resolver:
-                resolved_ent, resolved_prop = field_resolver[lookup_key]
-                if ent != resolved_ent:
-                    ent = resolved_ent
-                    prop = resolved_prop
+            lookup_key = (prop or field_name).strip()
+            matched = _match_field(lookup_key, measure_home, column_home, field_resolver)
+            if not matched and field_name and field_name != lookup_key:
+                matched = _match_field(field_name, measure_home, column_home, field_resolver)
+
+            if matched:
+                ent, prop, is_meas_resolved = matched
+                if is_meas_resolved:
+                    is_meas = True
             elif prop in measure_home:
-                resolved_ent = measure_home[prop]
-                if ent != resolved_ent:
-                    ent = resolved_ent
+                ent = measure_home[prop]
                 is_meas = True
             elif prop in column_home:
-                resolved_ent = column_home[prop]
-                if ent != resolved_ent:
-                    ent = resolved_ent
-
-            if not (ent and prop) and field_name:
-                match = _match_field(field_name, measure_home, column_home, field_resolver)
-                if match:
-                    ent, prop, is_meas = match
+                ent = column_home[prop]
+            elif prop and ent:
+                # Check if prop exists on ent (case-insensitive)
+                ent_lower = ent.lower()
+                matching_col = None
+                for c, t in column_home.items():
+                    if t.lower() == ent_lower and c.lower() == prop.lower():
+                        matching_col = c
+                        break
+                if matching_col:
+                    prop = matching_col
+                else:
+                    # Check if prop exists on any other table in the model
+                    for c, t in column_home.items():
+                        if c.lower() == prop.lower():
+                            ent = t
+                            prop = c
+                            break
+                    else:
+                        # Cannot validate prop in any table; mark unbound to prevent broken visual projections
+                        if field_name or prop:
+                            unbound.append(field_name or prop)
+                        continue
 
             if ent and prop:
                 idx = len(projections.get(role, []))

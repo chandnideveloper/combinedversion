@@ -25,13 +25,34 @@ def clean_tmdl_name(name: str) -> str:
     if not name:
         return "Measure"
     text = str(name).strip()
+
+    # Remove block comments /* ... */
+    text = re.sub(r"/\*[\s\S]*?\*/", " ", text)
+
+    # Remove single line comments // ...
+    if "//" in text:
+        parts = [p.strip() for p in text.split("//") if p.strip()]
+        if parts:
+            first = parts[0]
+            first = re.split(r"[,:\-\(\[]", first)[0].strip()
+            if len(first) >= 3 and not any(kw in first.lower() for kw in ["uses", "note", "todo", "fixme", "window"]):
+                text = first
+            elif len(parts) > 1 and len(parts[1].split()[0]) >= 3:
+                text = parts[1].split(",")[0].strip()
+            else:
+                text = " ".join(parts)
+        else:
+            text = "Custom_Measure"
+
     # Replace all newlines, carriage returns, tabs with a single space
     text = re.sub(r"[\r\n\t]+", " ", text).strip()
+
+    # Remove non-ASCII replacement characters and control characters
+    text = re.sub(r"[^\x20-\x7E]+", " ", text).strip()
 
     # If the name is a Qlik dynamic expression starting with '='
     # e.g. "='Total ' & Pick( $(vMeasure), 'Revenue', 'Trips', 'Customers', 'Drivers' )"
     if text.startswith("="):
-        # Extract quoted string fragments if present
         quoted_parts = re.findall(r"'([^']+)'|\"([^\"]+)\"", text)
         clean_words = []
         for q1, q2 in quoted_parts:
@@ -46,12 +67,31 @@ def clean_tmdl_name(name: str) -> str:
             if not text:
                 text = "Dynamic Measure"
 
+    # If name looks like a raw formula or set analysis or code:
+    # e.g. "Sum({ <Date = ...", "Avg( Pick(...) )", "Sum(A) / Sum(B)", or contains {<, >}, $(, or nested calls
+    nested_calls = any(m in text for m in ["{<", ">}", "$(", "{", "}", " / ", " * ", " + ", " - ", "Pick(", "Match(", "Today()", "Date(", "If(", "Aggr(", "RangeMax(", "RangeMin("])
+    if nested_calls or len(text) > 60:
+        fn_match = re.match(r"^([A-Za-z0-9_]+)\s*\(", text)
+        fn = fn_match.group(1) if fn_match else "Calc"
+        idents = [w for w in re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", text) if w.lower() not in ("sum", "avg", "count", "min", "max", "date", "floor", "ceil", "pick", "match", "upper", "trim", "total", "null", "today")]
+        if idents:
+            text = f"{fn}_{idents[0]}"
+        else:
+            words = re.findall(r"[A-Za-z0-9]+", text)
+            text = "_".join(words[:3]) if words else f"{fn}_Measure"
+
+    # Clean simple functional wrappers: Func(Column) -> Func_Column
+    text = re.sub(r"^([A-Za-z0-9_]+)\s*\(\s*([A-Za-z0-9_]+)\s*\)$", r"\1_\2", text)
+
     # Clean any surrounding quotes that might have been part of the raw name
     if (text.startswith("'") and text.endswith("'")) or (text.startswith('"') and text.endswith('"')):
         text = text[1:-1].strip()
 
-    # Remove any control characters
-    text = re.sub(r"[\x00-\x1f]", "", text).strip()
+    # Final pass: collapse whitespace and cap length strictly to 60 chars
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) > 60:
+        text = text[:60].rstrip()
+
     return text or "Measure"
 
 

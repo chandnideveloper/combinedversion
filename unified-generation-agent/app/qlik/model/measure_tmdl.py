@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 from app.qlik.model.datatypes import to_tmdl_type
 from app.qlik.model.dax_guard import guard
-from app.qlik.util.ids import lineage_tag, quote_tmdl
+from app.qlik.util.ids import clean_tmdl_name, lineage_tag, quote_tmdl
 from app.qlik.util.payload import as_dict, as_list, text
 
 INDENT = "\t"
@@ -59,6 +59,34 @@ def _fix_single_arg_math(dax: str) -> str:
     return out
 
 
+def _fix_dax_single_quoted_strings(dax: str) -> str:
+    """In DAX, string literals must be double-quoted ("A+"), not single-quoted ('A+').
+    Single quotes are strictly for table references like 'Table'[Column].
+    This converts single-quoted string literals in comparisons or value lists to double-quoted strings."""
+    if not dax or "'" not in dax:
+        return dax
+
+    table_fns = {
+        "all", "values", "filter", "distinct", "countrows", "calculatetable",
+        "relatedtable", "keepfilters", "averagex", "sumx", "countx", "countax",
+        "maxx", "minx", "productx", "concatenatex", "medianx", "geomeanx",
+        "rankx", "addcolumns", "selectcolumns", "generate", "topn"
+    }
+
+    def replace_quote(m: re.Match) -> str:
+        leading_fn = (m.group("fn") or "").lower()
+        content = m.group("val")
+        if leading_fn in table_fns:
+            return m.group(0)
+        return m.group(0).replace(f"'{content}'", f'"{content}"')
+
+    pattern = r"(?:(?P<fn>[A-Za-z0-9_]+)\s*)?(?P<delim>=|<|>|<=|>=|<>|,|\(|\{)\s*'(?P<val>[^'\[\]\r\n]+)'(?!\s*\[)"
+    out = dax
+    for _ in range(3):
+        out = re.sub(pattern, replace_quote, out)
+    return out
+
+
 def _clean_dax(dax_expr: str) -> str:
     """Unwrap nested column references, fix single-arg FLOOR/CEILING, COUNT(DISTINCT), and clean suffixed table names."""
     if not dax_expr:
@@ -94,6 +122,9 @@ def _clean_dax(dax_expr: str) -> str:
 
     # Fix FLOOR(x) -> FLOOR(x, 1) and CEIL(x) -> CEILING(x, 1)
     cleaned = _fix_single_arg_math(cleaned)
+
+    # Fix single-quoted string literals in DAX: 'A+' -> "A+"
+    cleaned = _fix_dax_single_quoted_strings(cleaned)
 
     cleaned = re.sub(r"'([A-Za-z0-9_]+)-\d+'", r"'\1'", cleaned)
     cleaned = re.sub(r"'([A-Za-z0-9_]+)_Raw'", r"'\1'", cleaned, flags=re.IGNORECASE)
@@ -318,11 +349,24 @@ def group_by_table(
 ) -> Dict[str, Dict[str, List[str]]]:
     """Return {table: {"measures": [...], "columns": [...]}}."""
     grouped: Dict[str, Dict[str, List[str]]] = {}
+    seen_measures_per_table: Dict[str, Set[str]] = {}
 
     for measure in measures:
         if not isinstance(measure, dict):
             continue
         table = _home_table(measure, known_tables)
+        raw_name = text(
+            measure.get("name")
+            or measure.get("fabric_measure_name")
+            or measure.get("qlik_measure_name"),
+            "Measure",
+        )
+        c_name = clean_tmdl_name(raw_name).lower()
+        seen = seen_measures_per_table.setdefault(table.lower(), set())
+        if c_name in seen:
+            continue
+        seen.add(c_name)
+
         grouped.setdefault(table, {"measures": [], "columns": []})
         grouped[table]["measures"].append(build_measure(measure, problems, valid_columns=valid_columns))
 

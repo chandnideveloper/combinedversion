@@ -165,9 +165,7 @@ class VisualProjectionsMixin:
                 or agg_func_str == 'AGG'
             )
             
-            # Use Aggregation for LineAmount if it's the primary Y axis in clusteredBarChart
-            # matching user "should be" snippet
-            force_aggregation = (clean_f == "LineAmount") or (f == "LineAmount")
+            force_aggregation = False
 
             if is_measure and not force_aggregation:
                 field_expr = {"Measure": {"Expression": {"SourceRef": {"Entity": entity}}, "Property": resolved}}
@@ -184,10 +182,6 @@ class VisualProjectionsMixin:
                 else:
                     # For string fields, use Min (3) for cards, otherwise CountNonNull (5)
                     func = 0 if is_numeric else (3 if visual_type == "card" else 5)
-
-                # Override for LineAmount to match user's Function 5
-                if clean_f == "LineAmount":
-                    func = 5
                 
                 # Mapping based on user testing: 0:Sum, 1:Avg, 2:CountNonNull, 3:Min, 4:Max, 5:CountNonNull, 6:Median, 7:StandardDeviation, 8:Variance
                 func_names = {0: "Sum", 1: "Avg", 2: "CountNonNull", 3: "Min", 4: "Max", 5: "CountNonNull", 6: "Median", 7: "StandardDeviation", 8: "Variance"}

@@ -135,12 +135,34 @@ def build_expression(connection: Dict[str, Any], index: int) -> Tuple[str, str]:
         # Avoid broken local C:\Data\... references in shared expressions; point to Supabase Storage Web.Contents
         source = f'Web.Contents("{SUPABASE_STORAGE_URL}")'
 
-    if source.strip().lower().startswith("let"):
-        source_lines = [f"{INDENT*2}{line}" for line in source.strip().splitlines()]
-        expr_body = "\n".join(source_lines)
+    def _format_m_body(raw_source: str) -> str:
+        s = (raw_source or "").strip()
+        if not s:
+            return f"{INDENT*2}let\n{INDENT*2}    Source = \"\"\n{INDENT*2}in\n{INDENT*2}    Source"
+        if s.lower().startswith("let"):
+            return "\n".join(f"{INDENT*2}{line}" if line.strip() else "" for line in s.splitlines())
 
-    else:
-        expr_body = f"{INDENT*2}let\n{INDENT*2}    Source = {source}\n{INDENT*2}in\n{INDENT*2}    Source"
+        # Check if source contains comments (e.g. // REVIEW_REQUIRED...)
+        lines = s.splitlines()
+        comment_lines = []
+        code_lines = []
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("//") or stripped.startswith("/*"):
+                comment_lines.append(stripped)
+            elif stripped:
+                code_lines.append(line)
+
+        code_body = "\n".join(code_lines).strip()
+        comment_block = ("\n".join(f"{INDENT*2}    {c}" for c in comment_lines) + "\n") if comment_lines else ""
+
+        if not code_body:
+            # Only comments provided: supply a valid empty literal so M parser doesn't crash on `Source = //...`
+            return f"{INDENT*2}let\n{comment_block}{INDENT*2}    Source = \"\"\n{INDENT*2}in\n{INDENT*2}    Source"
+
+        return f"{INDENT*2}let\n{comment_block}{INDENT*2}    Source = {code_body}\n{INDENT*2}in\n{INDENT*2}    Source"
+
+    expr_body = _format_m_body(source)
 
     block = [
         f"expression {quote_tmdl(name)} =",

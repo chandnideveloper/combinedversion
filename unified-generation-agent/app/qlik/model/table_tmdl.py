@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Set
 
 from app.qlik.model.datatypes import format_string, summarize_by, to_tmdl_type
 from app.qlik.model.datatype_resolver import reconcile_table_datatypes
+from app.qlik.model.measure_tmdl import _clean_dax, _fix_single_arg_math
 from app.qlik.util.ids import lineage_tag, quote_tmdl
 from app.qlik.util.payload import as_dict, as_list, text
 
@@ -18,6 +19,18 @@ def _clean_table_name(raw_name: str) -> str:
     cleaned = re.sub(r"-\d+$", "", name)
     cleaned = re.sub(r"_Raw$", "", cleaned, flags=re.IGNORECASE)
     return cleaned.strip() or name
+
+
+def _clean_sql_identifier(token: str) -> str:
+    """Generically unquote and normalize a SQL column identifier."""
+    cleaned = token.strip()
+    parts = cleaned.split()
+    if len(parts) >= 2 and parts[-2].upper() == "AS":
+        cleaned = parts[-1]
+    else:
+        cleaned = parts[-1]
+    cleaned = cleaned.split(".")[-1]
+    return cleaned.strip('"\'`[] \t\r\n').lower()
 
 
 def _column_name(column: Dict[str, Any]) -> str:
@@ -281,15 +294,34 @@ def build_column(
             f"'{table}'[{name}]".lower(), f"[{name}]".lower(), "blank()"
         ):
             is_calc = False
+        else:
+            dax_expr = _clean_dax(dax_expr)
+            dax_expr = _fix_single_arg_math(dax_expr)
+            # Fix dotted column references e.g. [INSTRUCTORS.FIRST_NAME] -> [INSTRUCTORS_FIRST_NAME]
+            def _fix_dotted_col(m: re.Match) -> str:
+                full_ref = m.group(1)
+                if "." in full_ref:
+                    p = full_ref.split(".", 1)
+                    t_part, c_part = p[0].strip(), p[1].strip()
+                    if t_part.lower() == table.lower() or t_part.lower() == _clean_table_name(table).lower():
+                        return f"[{t_part}_{c_part}]"
+                    return f"[{c_part}]"
+                return m.group(0)
+            dax_expr = re.sub(r"\[([A-Za-z0-9_]+\.[A-Za-z0-9_]+)\]", _fix_dotted_col, dax_expr)
 
     if not is_calc and sql_select_cols is not None:
-        if name.lower() not in sql_select_cols and source.lower() not in sql_select_cols:
-            is_calc = True
+        name_clean = _clean_sql_identifier(name)
+        source_clean = _clean_sql_identifier(source)
+        if name_clean not in sql_select_cols and source_clean not in sql_select_cols:
             qlik_expr = extracted_exprs.get(name.lower()) if extracted_exprs else None
-            if qlik_expr:
-                dax_expr = _qlik_expr_to_dax(qlik_expr, table, source_table=source_table)
-            if not dax_expr:
-                dax_expr = "BLANK()"
+            cand_dax = _qlik_expr_to_dax(qlik_expr, table, source_table=source_table) if qlik_expr else ""
+            if cand_dax and cand_dax.strip().lower() not in (
+                f"'{table}'[{name}]".lower(), f"[{name}]".lower(), "blank()", "=blank()"
+            ):
+                is_calc = True
+                dax_expr = _fix_single_arg_math(_clean_dax(cand_dax))
+            else:
+                is_calc = False
 
     if is_calc and dax_expr and not dax_expr.startswith("="):
         lines.append(f"{INDENT}column {quote_tmdl(name)} = {dax_expr}")
@@ -297,6 +329,17 @@ def build_column(
         lines.append(f"{INDENT*2}lineageTag: {lineage_tag(f'col:{table}.{name}')}")
         lines.append(f"{INDENT*2}summarizeBy: {summarize_by(data_type, is_key, col_name=name)}")
     else:
+        # Normalize sourceColumn: must match the actual column name produced in M
+        if "." in source:
+            parts = source.split(".", 1)
+            if parts[0].strip().lower() == table.strip().lower() or parts[0].strip().lower() == _clean_table_name(table).lower():
+                if name.lower() == f"{parts[0]}_{parts[1]}".lower():
+                    source = name
+                else:
+                    source = parts[1].strip()
+            else:
+                source = source.replace(".", "_")
+
         lines.append(f"{INDENT}column {quote_tmdl(name)}")
         lines.append(f"{INDENT*2}dataType: {data_type}")
         if is_key:
@@ -690,6 +733,63 @@ def _mquery(
 
 
 
+def align_m_renames_and_types(m_query: str, table_name: str, columns: List[Dict[str, Any]]) -> str:
+    """
+    Ensure Table.RenameColumns and Table.TransformColumnTypes use consistent, valid column names
+    aligned with the model's clean column names (e.g. STUDENTS_FIRST_NAME instead of STUDENTS.FIRST_NAME).
+    """
+    if not m_query or not columns:
+        return m_query
+
+    col_source_to_model = {}
+    for c in columns:
+        if not isinstance(c, dict):
+            continue
+        m_name = _column_name(c)
+        col_source_to_model[m_name.lower()] = m_name
+
+        q_name = text(c.get("qlik_column_name") or c.get("source_column"))
+        if q_name:
+            col_source_to_model[q_name.lower()] = m_name
+            if "." in q_name:
+                simple = q_name.split(".")[-1]
+                col_source_to_model[simple.lower()] = m_name
+
+    # 1. Align Table.RenameColumns
+    def repl_rename_block(m: re.Match) -> str:
+        step_var = m.group(1)
+        pairs_str = m.group(2)
+        pairs = re.findall(r'\{\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\}', pairs_str)
+        new_pairs = []
+        for from_c, to_c in pairs:
+            target = col_source_to_model.get(from_c.lower()) or col_source_to_model.get(to_c.lower()) or to_c
+            if "." in target:
+                target = target.replace(".", "_")
+            new_pairs.append(f'{{"{from_c}", "{target}"}}')
+        pairs_joined = ", ".join(new_pairs)
+        return f'Table.RenameColumns({step_var}, {{{pairs_joined}}})'
+
+    m_query = re.sub(r'Table\.RenameColumns\(\s*([^,]+)\s*,\s*\{(.+?)\}\s*\)', repl_rename_block, m_query, flags=re.DOTALL)
+
+    # 2. Align Table.TransformColumnTypes
+    def repl_type_block(m: re.Match) -> str:
+        step_var = m.group(1)
+        pairs_str = m.group(2)
+        pairs = re.findall(r'\{\s*"([^"]+)"\s*,\s*([^}]+)\s*\}', pairs_str)
+        new_pairs = []
+        for col_c, type_c in pairs:
+            clean_c = col_source_to_model.get(col_c.lower()) or col_c
+            if "." in clean_c:
+                clean_c = clean_c.replace(".", "_")
+            new_pairs.append(f'{{"{clean_c}", {type_c.strip()}}}')
+        pairs_joined = ", ".join(new_pairs)
+        return f'Table.TransformColumnTypes({step_var}, {{{pairs_joined}}})'
+
+    m_query = re.sub(r'Table\.TransformColumnTypes\(\s*([^,]+)\s*,\s*\{(.+?)\}\s*\)', repl_type_block, m_query, flags=re.DOTALL)
+
+    return m_query
+
+
 def strip_table_prefixes_in_m(m_query: str, table_name: str, columns: List[Dict[str, Any]]) -> str:
     """
     Replace occurrences of 'TableName.ColumnName' with 'ColumnName' in M queries.
@@ -767,6 +867,7 @@ def build_table(
     extracted_exprs = _extract_column_expressions(qlik_query)
 
     partition_query = _mquery(table, name, valid_table_names, extracted_exprs)
+    partition_query = align_m_renames_and_types(partition_query, name, columns)
     partition_query = strip_table_prefixes_in_m(partition_query, name, columns)
 
     sql_select_cols = None
@@ -774,7 +875,7 @@ def build_table(
 
     m_sql = re.search(r'Value\.NativeQuery\([^,]+,\s*"SELECT\s+(.+?)\s+FROM', partition_query, re.IGNORECASE | re.DOTALL)
     if m_sql and 'SELECT *' not in m_sql.group(0).upper():
-        sql_select_cols = {c.strip().split()[-1].split('.')[-1].lower() for c in m_sql.group(1).split(',')}
+        sql_select_cols = {_clean_sql_identifier(c) for c in m_sql.group(1).split(',')}
 
     m_upstream = re.search(r'Source\s*=\s*(?:#")?([A-Za-z0-9_]+)(?:[",\s]|$)', partition_query)
     if m_upstream and not m_sql:

@@ -4,6 +4,7 @@ Standardizes public API contract for POST /migrate.
 Zero credential leakage.
 """
 
+import os
 from typing import Any, Dict, Literal, Optional
 from pydantic import BaseModel, Field, model_validator
 
@@ -14,17 +15,20 @@ class GitHubTargetConfig(BaseModel):
     branch: str = Field(default="main", min_length=1, description="Target branch")
     git_pat: str = Field(..., min_length=1, description="GitHub Personal Access Token")
     directory: Optional[str] = Field(
-        default="Test-workspace",
-        description="Target repository subfolder (e.g. 'Test-workspace') synchronized with Fabric",
+        default_factory=lambda: os.getenv("DESTINATION_BASE", "test-workspace"),
+        description="Target repository subfolder (e.g. 'test-workspace') synchronized with Fabric",
     )
     folder: Optional[str] = Field(
         default=None,
-        description="Alias for directory (e.g. 'Test-workspace')",
+        description="Alias for directory (e.g. 'test-workspace')",
     )
 
     @property
     def target_directory(self) -> str:
-        return self.folder or self.directory or "Test-workspace"
+        res = self.folder or self.directory or os.getenv("DESTINATION_BASE", "test-workspace")
+        if str(res).strip().lower() in ("test-workspace", "test workspace", "test_workspace"):
+            return os.getenv("DESTINATION_BASE", "test-workspace")
+        return res
 
     def __repr__(self) -> str:
         return (

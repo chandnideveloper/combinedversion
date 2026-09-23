@@ -12,6 +12,7 @@ import json
 from .memory_file_agent import MemoryFileAgent
 from app.tableau.agents.fabric_agent.fabric_agent import FabricAgent
 from app.tableau.agents.git_agent.git_agent import GitAgent
+from app.services.activity_logger import log_activity_async
 from azure.identity.aio import DefaultAzureCredential
 from azure.keyvault.secrets.aio import SecretClient
 
@@ -520,14 +521,11 @@ class CoordinatorAgent(AssistantAgent, FolderManagerMixin, MetadataExtractorMixi
                 new_app_name = f"{base_name}_{timestamp}"
                 log_info(f"[CoordinatorAgent] Standardized Name: {new_app_name}")
 
-                clean_target = (target_folder or "").strip("/ ")
+                clean_target = (target_folder or os.getenv("DESTINATION_BASE", "test-workspace")).strip("/ ")
                 if clean_target:
-                    if clean_target == "Test-workspace" or clean_target.startswith("Test-workspace/"):
-                        destination_folder = f"{clean_target}/{new_app_name}"
-                    else:
-                        destination_folder = f"Test-workspace/{clean_target}/{new_app_name}"
+                    destination_folder = f"{clean_target}/{new_app_name}"
                 else:
-                    destination_folder = f"Test-workspace/{new_app_name}"
+                    destination_folder = new_app_name
 
                 inner_payload = outer_payload.get("payload")
                 api_data = inner_payload if inner_payload else outer_payload
@@ -1016,7 +1014,6 @@ class CoordinatorAgent(AssistantAgent, FolderManagerMixin, MetadataExtractorMixi
                 log_info(f"[CoordinatorAgent] Using Direct Lake schema: {dl_schema}")
 
             # Agent Action: Stage 2
-            from app.services.activity_logger import log_activity_async
             await log_activity_async(
                 run_id=run_id,
                 project_id=project_id,

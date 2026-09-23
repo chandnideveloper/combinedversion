@@ -147,23 +147,52 @@ class VisualMapperMixin:
             
         f_name_stripped = f_name.strip()
         resolved = None
+
+        # Clean f_name_stripped for candidates
+        cand_col = f_name_stripped
+        if "." in f_name_stripped:
+            cand_col = f_name_stripped.split(".", 1)[1].strip().strip("[]'\"")
+
+        clean_col = f_name_stripped.strip("[]'\"")
+
         if entity:
-            resolved = display_to_bi_name.get(f"{entity}.{f_name}") or display_to_bi_name.get(f"{entity}.{f_name_stripped}")
+            resolved = (
+                display_to_bi_name.get(f"{entity}.{f_name}")
+                or display_to_bi_name.get(f"{entity}.{f_name_stripped}")
+                or display_to_bi_name.get(f"{entity}.{cand_col}")
+                or display_to_bi_name.get(f"{entity}.{clean_col}")
+            )
             if not resolved:
                 norm_prefix = f"{entity.strip().lower()}."
                 norm_map = {k.strip().lower(): v for k, v in display_to_bi_name.items() if isinstance(k, str)}
-                resolved = norm_map.get(norm_prefix + f_name_stripped.lower())
-                
+                resolved = (
+                    norm_map.get(norm_prefix + f_name_stripped.lower())
+                    or norm_map.get(norm_prefix + cand_col.lower())
+                    or norm_map.get(norm_prefix + clean_col.lower())
+                )
+
         if not resolved:
-            resolved = display_to_bi_name.get(f_name) or display_to_bi_name.get(f_name_stripped)
+            resolved = (
+                display_to_bi_name.get(cand_col)
+                or display_to_bi_name.get(clean_col)
+                or display_to_bi_name.get(f_name)
+                or display_to_bi_name.get(f_name_stripped)
+            )
             if not resolved:
                 norm_map = {k.strip().lower(): v for k, v in display_to_bi_name.items() if isinstance(k, str)}
-                resolved = norm_map.get(f_name_stripped.lower(), f_name)
-            
+                resolved = (
+                    norm_map.get(cand_col.lower())
+                    or norm_map.get(clean_col.lower())
+                    or norm_map.get(f_name_stripped.lower(), cand_col)
+                )
+
         if isinstance(resolved, str):
+            # If resolved still contains Table.Column, keep only the column part
+            if "." in resolved and not (resolved.startswith("(") and resolved.endswith(")")):
+                resolved = resolved.split(".", 1)[1].strip()
             # Remove any wrapping square brackets [FieldName] -> FieldName for BI model reference
-            if resolved.startswith('[') and resolved.endswith(']'):
-                resolved = resolved[1:-1]
+            resolved = resolved.strip("[]'\"")
+
         return resolved
 
     @staticmethod
@@ -345,6 +374,18 @@ class VisualMapperMixin:
         entity = field_to_table.get(f_strip) or field_to_table.get(f"[{f_strip}]")
         if entity:
             return entity
+
+        # 1b. Check explicit Table.Column or [Table].[Column] notation
+        if "." in f_strip:
+            parts = f_strip.split(".", 1)
+            tbl_cand = parts[0].strip().strip("[]'\"")
+            col_cand = parts[1].strip().strip("[]'\"")
+            for kt in set(field_to_table.values()):
+                if kt.lower() == tbl_cand.lower():
+                    return kt
+            # Also check if col_cand alone is in field_to_table
+            if col_cand in field_to_table:
+                return field_to_table[col_cand]
 
         # 2. Clean mapping (strip aggregation wrappers)
         clean_name, _ = VisualMapperMixin.get_field_metadata(f_name)

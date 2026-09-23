@@ -83,6 +83,28 @@ def _entity_maps(mapping: Dict[str, Any]):
                 field_resolver[cl] = (table_name, column_name)
                 field_resolver[cl.replace("_", " ")] = (table_name, column_name)
                 field_resolver[cl.replace(" ", "_")] = (table_name, column_name)
+                field_resolver[f"{table_name}.{column_name}".lower()] = (table_name, column_name)
+                field_resolver[f"{table_name}.{column_name.replace('_', ' ')}".lower()] = (table_name, column_name)
+                field_resolver[f"[{table_name}].[{column_name}]".lower()] = (table_name, column_name)
+
+                # Check for raw source column names (e.g. DEPARTMENT when column_name is appointments_department)
+                for alt_key in ("qlik_column_name", "source_column", "sourceColumn", "name"):
+                    raw_alt = text(as_dict(column).get(alt_key))
+                    if raw_alt and raw_alt != column_name:
+                        ral = raw_alt.lower()
+                        if ral not in field_resolver:
+                            field_resolver[ral] = (table_name, column_name)
+                        field_resolver[f"{table_name}.{raw_alt}".lower()] = (table_name, column_name)
+                        field_resolver[f"[{table_name}].[{raw_alt}]".lower()] = (table_name, column_name)
+
+                # Strip table prefix if column_name was prefixed with table_name_ (e.g. appointments_department -> department)
+                tbl_prefix = table_name.lower() + "_"
+                if cl.startswith(tbl_prefix):
+                    unprefixed = cl[len(tbl_prefix):]
+                    if unprefixed not in field_resolver:
+                        field_resolver[unprefixed] = (table_name, column_name)
+                    field_resolver[f"{table_name}.{unprefixed}".lower()] = (table_name, column_name)
+                    field_resolver[f"[{table_name}].[{unprefixed}]".lower()] = (table_name, column_name)
 
     # 2. Map all master dimensions dynamically from payload
     from app.qlik.report.visual_builder import _extract_base_field
