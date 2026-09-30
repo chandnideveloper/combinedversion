@@ -50,47 +50,33 @@ logger = get_logger(__name__)
 _TELEMETRY_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="agent-telemetry")
 
 
-def _post_with_fallback(path: str, payload: Dict[str, Any], timeout: tuple = (0.2, 0.5)) -> None:
-    import requests
-    bases = [
-        "http://127.0.0.1:8008",
-        config.MONGO_API_URL,
-    ]
-    for base in bases:
-        if not base:
-            continue
-        try:
-            url = f"{base.rstrip('/')}/{path.lstrip('/')}"
-            res = requests.post(url, json=payload, timeout=timeout)
-            if res.status_code in (200, 201):
-                return
-        except Exception:
-            pass
-
-
 def _log_action_sync(action: str, request: GenerateRequest, app_name: str, details: str = "") -> None:
-    """Record one agent action for the run's activity trail, without
-    blocking generation on the logging endpoint being reachable."""
+    """Record one agent action using the UnifiedLogger."""
+    from app.services.activity_logger import UnifiedLogger
+    logger = UnifiedLogger("qlik")
+    
     run_id = request.run_id or "unknown"
     workspace_id = request.workspace_id or request.space_id or "personal"
     app_id = request.app_id or "unknown"
-    payload = {
-        "agent_name": "Generation Agent",
-        "activity_summary": action,
-        "action": action,
-        "details": details or action,
-        "run_id": run_id,
-        "run_no": run_id,
-        "correlation_id": run_id,
-        "app_id": app_id,
-        "workbook_id": app_id,
-        "workspace_id": workspace_id,
-        "project_id": workspace_id,
-        "project_name": app_name or "Unknown",
-        "type": "agent_activity",
-        "status": "success",
-    }
-    _TELEMETRY_POOL.submit(_post_with_fallback, "agent-actions", payload, (1, 3))
+    
+    logger.log_action_sync(
+        run_id=run_id,
+        project_id=workspace_id,
+        workbook_id=app_id,
+        summary=action,
+        status="success",
+        project_name=app_name
+    )
+    # Also log a detailed trace for deeper observability
+    logger.log_trace_sync(
+        run_id=run_id,
+        project_id=workspace_id,
+        workbook_id=app_id,
+        message=action,
+        level="INFO",
+        details=details,
+        project_name=app_name
+    )
 
 
 def generate(mapping_document: Dict[str, Any], request: GenerateRequest) -> Dict[str, Any]:
@@ -120,7 +106,8 @@ def generate(mapping_document: Dict[str, Any], request: GenerateRequest) -> Dict
         run_id=request.run_id or "unknown",
         project_id=request.space_id or "unknown",
         workbook_id=request.app_id or "unknown",
-        summary="Building TMDL semantic model."
+        summary="Building TMDL semantic model.",
+        project_name=app_name
     )
     _log_action_sync("Generating Power BI TMDL model & semantic relationships", request, app_name, f"Starting generation for app {app_name}")
 
@@ -167,7 +154,8 @@ def generate(mapping_document: Dict[str, Any], request: GenerateRequest) -> Dict
             run_id=request.run_id or "unknown",
             project_id=request.space_id or "unknown",
             workbook_id=request.app_id or "unknown",
-            summary="Generating Power BI visual layouts (PBIR) from source sheets."
+            summary="Generating Power BI visual layouts (PBIR) from source sheets.",
+            project_name=app_name
         )
         _log_action_sync("Generating PBIR visual layout & JSON definitions", request, app_name, "Building PBIR visual definitions")
         report_files, notes, report_stats = build_report(
@@ -352,7 +340,7 @@ def _save_to_mongodb(result: Dict[str, Any], request: GenerateRequest, app_name:
         },
     }
 
-    _TELEMETRY_POOL.submit(_post_with_fallback, "report-generation", doc, (2, 5))
+    pass
 
 
 def _deploy(

@@ -135,9 +135,15 @@ if Config.AZURE_OPENAI_API_KEY and Config.AZURE_OPENAI_ENDPOINT:
 # 3. MongoDB Client
 mongo_client = None
 mongo_db = None
+sync_mongo_client = None
+sync_mongo_db = None
 if Config.MONGODB_URL:
     try:
         mongo_client = AsyncIOMotorClient(Config.MONGODB_URL)
         mongo_db = mongo_client[Config.MONGODB_DB_NAME]
+        
+        import pymongo
+        sync_mongo_client = pymongo.MongoClient(Config.MONGODB_URL)
+        sync_mongo_db = sync_mongo_client[Config.MONGODB_DB_NAME]
     except Exception as e:
         logger.error(f"[Config Error] Failed to initialize MongoDB client: {e}")

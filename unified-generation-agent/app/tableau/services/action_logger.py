@@ -3,14 +3,13 @@ import uuid
 import datetime
 from typing import Optional, Dict, Any
 from openai import AsyncAzureOpenAI
-from app.tableau.core.config import Config, mongo_db
-from app.tableau.core.logging_utils import log_error, log_info, log_warning, run_background_task, store_deadletter
-from app.tableau.core.http_client import get_resilient_client
-from app.tableau.api.schemas import CosmosActivityRecord
+from app.tableau.core.config import Config
+from app.tableau.core.logging_utils import log_error, log_info, log_warning, run_background_task
+from app.services.activity_logger import UnifiedLogger
 
 class ActionLogger:
     def __init__(self):
-        self.agent_name = "GenerationAgent"
+        self.unified_logger = UnifiedLogger("tableau")
         
         self.llm_client = None
         if Config.AZURE_OPENAI_API_KEY and Config.AZURE_OPENAI_ENDPOINT:
@@ -38,57 +37,21 @@ class ActionLogger:
             log_error(f"[ActionLogger] LLM failed: {e}")
             return str(user_prompt)
 
-    async def send_activity_to_api(self, project_id, workbook_id, run_id, technical_message, token=None):
-        """Generates a summary and sends it to Cosmos DB."""
+    async def send_activity_to_api(self, project_id, workbook_id, run_id, technical_message, token=None, project_name="Unknown"):
+        """Generates a summary and sends it to the central HTTP API."""
         summary = await self._generate_llm_content(
             "Summarize this action in <100 chars:", technical_message
         )
-        payload = {
-            "id": str(uuid.uuid4()),
-            "run_id": run_id,
-            "status": "success",
-            "created_at": datetime.datetime.utcnow().isoformat(),
-            "activity_summary": summary,
-            "project_id": project_id,
-            "workbook_id": workbook_id,
-            "agent_name": self.agent_name,
-            "type": "agent_activity"
-        }
-        run_background_task(self._do_post(payload), task_name="send_activity_to_api")
+        await self.unified_logger.log_action_async(run_id, project_id, workbook_id, summary, status="running", project_name=project_name)
+        # Also log the deep technical trace on successful runs
+        await self.unified_logger.log_trace_async(run_id, project_id, workbook_id, technical_message, level="INFO", details=summary, project_name=project_name)
 
     async def send_error_to_api(self, project_id, workbook_id, run_id, technical_message, error_detail=None, token=None):
-        """Logs an error event to Cosmos DB with an LLM-generated summary."""
+        """Logs an error event to the central HTTP API with an LLM-generated summary."""
         summary = await self._generate_llm_content(
             "Summarize this error in <100 chars:", technical_message
         )
-        payload = {
-            "id": str(uuid.uuid4()),
-            "run_id": run_id,
-            "status": "error",
-            "created_at": datetime.datetime.utcnow().isoformat(),
-            "activity_summary": summary,
-            "error_detail": str(error_detail) if error_detail else technical_message,
-            "project_id": project_id,
-            "workbook_id": workbook_id,
-            "agent_name": self.agent_name,
-            "type": "agent_activity"
-        }
-        run_background_task(self._do_post(payload), task_name="send_error_to_api")
-
-    async def _do_post(self, payload):
-        try:
-            try:
-                validated_payload = CosmosActivityRecord(**payload).model_dump()
-            except Exception as ve:
-                log_warning(f"[ActionLogger] Activity payload failed contract validation: {ve}. Sending raw.")
-                validated_payload = payload
-
-            if mongo_db is not None:
-                await mongo_db["activities"].insert_one(validated_payload)
-                log_info(f"[ActionLogger] Successfully posted activity to MongoDB")
-            else:
-                log_warning("[ActionLogger] MONGODB_URL not configured. Skipping save.")
-        except Exception as e:
-            err_msg = f"Failed to post to MongoDB: {e}"
-            log_error(f"[ActionLogger] {err_msg}")
-            store_deadletter("mongodb://activities", payload, err_msg)
+        # Log to the action collection
+        await self.unified_logger.log_action_async(run_id, project_id, workbook_id, summary, status="error")
+        # Also log the deep technical trace
+        await self.unified_logger.log_trace_async(run_id, project_id, workbook_id, technical_message, level="ERROR", details=str(error_detail))

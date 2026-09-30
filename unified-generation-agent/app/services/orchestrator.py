@@ -55,27 +55,37 @@ class MigrationOrchestrator:
         # Resolve IDs for logging
         project_id = "unknown"
         workbook_id = "unknown"
+        project_name = "Unknown"
+        
         if source_type == "qlik":
             project_id = request.source.get("space_id", "unknown")
             workbook_id = request.source.get("app_id", "unknown")
+            project_name = request.source.get("app_name") or request.source.get("project_name") or "Unknown"
         elif source_type == "tableau":
             project_id = request.source.get("project_id", "unknown")
             workbook_id = request.source.get("workbook_id", "unknown")
+            project_name = request.source.get("project_name") or request.source.get("workbook_name") or "Unknown"
 
         # Agent Action: Stage 1
         await log_activity_async(
             run_id=request.run_id,
             project_id=project_id,
             workbook_id=workbook_id,
-            summary="Report Generation started."
+            summary="Report Generation started.",
+            project_name=project_name,
+            source_type=source_type
         )
 
         if source_type == "qlik":
             raw_result = await self._run_qlik_generation(request, client_token)
             final_res = self._normalize_qlik_result(request, raw_result)
+            if project_name == "Unknown":
+                project_name = raw_result.get("app_name", "Unknown")
         elif source_type == "tableau":
             raw_result = await self._run_tableau_generation(request, client_token)
             final_res = self._normalize_tableau_result(request, raw_result)
+            if project_name == "Unknown":
+                project_name = raw_result.get("project", {}).get("name", "Unknown")
         else:
             raise ValueError(f"Unsupported source_type: '{source_type}'. Must be 'qlik' or 'tableau'")
 
@@ -85,8 +95,51 @@ class MigrationOrchestrator:
                 run_id=request.run_id,
                 project_id=project_id,
                 workbook_id=workbook_id,
-                summary="Report Generation completed successfully."
+                summary="Report Generation completed successfully.",
+                project_name=project_name,
+                source_type=source_type
             )
+
+        # Centralized saving of the generation result to MongoDB
+        try:
+            from app.tableau.core.config import mongo_db
+            import datetime
+            if mongo_db is not None:
+                record = final_res.model_dump()
+                record["_id"] = request.run_id
+                record["timestamp"] = datetime.datetime.utcnow().isoformat()
+                
+                # 1. Direct MongoDB insert (as fallback/direct store)
+                await mongo_db["report_generation"].replace_one(
+                    {"run_id": request.run_id},
+                    record,
+                    upsert=True
+                )
+                
+                # 2. HTTP POST to the central API for frontend/microservice compatibility
+                import httpx
+                import os
+                # Use TABLEAU_MONGO_API_URL for tableau, else MONGO_API_URL
+                if source_type == "tableau":
+                    base_url = os.getenv("TABLEAU_MONGO_API_URL", "https://rizio6jk6d4psp4xzqzy2pl4nm0eibme.lambda-url.ap-southeast-2.on.aws").rstrip("/")
+                else:
+                    base_url = os.getenv("MONGO_API_URL", "http://127.0.0.1:8005").rstrip("/")
+                try:
+                    async with httpx.AsyncClient(timeout=5.0) as client:
+                        # Construct payload perfectly matching what the API expects
+                        api_payload = {
+                            "run_id": request.run_id,
+                            "workspace_id": project_id,
+                            "app_id": workbook_id,
+                            "report_result": record
+                        }
+                        await client.post(f"{base_url}/report-generation", json=api_payload)
+                except Exception as http_e:
+                    logger.warning(f"[MigrationOrchestrator] HTTP push to report-generation failed: {http_e}")
+
+                logger.info(f"[MigrationOrchestrator] Successfully saved generation record for {source_type}")
+        except Exception as e:
+            logger.error(f"[MigrationOrchestrator] Failed to save generation record to MongoDB: {e}")
 
         return final_res
 
