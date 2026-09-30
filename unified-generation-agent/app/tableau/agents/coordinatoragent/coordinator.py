@@ -256,18 +256,40 @@ class CoordinatorAgent(AssistantAgent, FolderManagerMixin, MetadataExtractorMixi
                 # Fetch Mapping Data from MongoDB
                 if mongo_db is None:
                     raise ValueError("MONGODB_URL is not configured.")
-                
-                first_record = await mongo_db["mapping"].find_one({
-                    "project_id": project_id,
-                    "workbook_id": workbook_id,
-                    "run_id": run_id
-                })
-                if not first_record:
-                    first_record = await mongo_db["mapping_results"].find_one({
-                        "project_id": project_id,
-                        "workbook_id": workbook_id,
-                        "run_id": run_id
-                    })
+                try:
+                    first_record = await mongo_db["mapping"].find_one(
+                        {
+                            "project_id": project_id,
+                            "workbook_id": workbook_id,
+                            "run_id": run_id
+                        },
+                        sort=[('_id', -1)]
+                    )
+                    if not first_record:
+                        first_record = await mongo_db["mapping_results"].find_one(
+                            {
+                                "project_id": project_id,
+                                "workbook_id": workbook_id,
+                                "run_id": run_id
+                            },
+                            sort=[('_id', -1)]
+                        )
+                except Exception as db_err:
+                    err_msg = f"Database connection or query failed: {str(db_err)}"
+                    log_error(f"[CoordinatorAgent] {err_msg}")
+                    await self.action_logger.send_error_to_api(
+                        project_id, workbook_id, run_id,
+                        "Database Error", err_msg,
+                        token=token
+                    )
+                    error_response = {"status": "error", "message": err_msg}
+                    await self._save_generation_record(
+                        run_id, project_id, workbook_id, None, 
+                        status="failed", 
+                        payload={"error": err_msg, "final_response": error_response}, 
+                        token=token
+                    )
+                    return error_response
                 
                 if not first_record:
                     err_msg = f"No mapping records found for project_id={project_id}, workbook_id={workbook_id}, run_id={run_id}"

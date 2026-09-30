@@ -99,7 +99,9 @@ def retry_db_operation(max_attempts=3, delay=1):
                     if attempts == max_attempts:
                         raise RuntimeError(f"MongoDB operation failed after {max_attempts} attempts: {str(e)}")
                     time.sleep(delay * (2 ** attempts))
-            raise last_error
+            if last_error is not None:
+                raise last_error
+            raise RuntimeError("MongoDB operation failed")
         return wrapper
     return decorator
 
